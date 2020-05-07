@@ -14,16 +14,16 @@ jobs:
     resource_class: large
 #    parallelism: 2
     steps:
-      - apt update && apt-get install -y ssh git git-lfs
+      - run: apt update && apt-get install -y ssh git git-lfs
 #      - ssh-keyscan bitbucket.org >> /root/.ssh/known_hosts
       - checkout
       # Install test dependencies
       - restore_cache:
           key: v1-python-cache--{{ checksum "requirements.txt" }}
-            - run: >
-                if ! pip3 show vcap > /dev/null; then
-                  pip3 install -r requirements.txt
-                fi
+      - run: >
+          if ! pip3 show vcap > /dev/null; then
+            pip3 install -r requirements.txt
+          fi
       - save_cache:
           key: v1-python-cache--{{ checksum "setup.py" }}
           paths:
