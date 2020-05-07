@@ -1,0 +1,40 @@
+version: 2.1
+
+workflows:
+  main:
+    jobs:
+      - run-tests
+
+
+
+jobs:
+  run-tests:
+    docker:
+      - image: aotuai/brainframe_build_env:0.26.0
+    resource_class: large
+#    parallelism: 2
+    steps:
+      - apt update && apt-get install -y ssh git git-lfs
+#      - ssh-keyscan bitbucket.org >> /root/.ssh/known_hosts
+      - checkout
+      # Install test dependencies
+      - restore_cache:
+          key: v1-python-cache--{{ checksum "requirements.txt" }}
+            - run: >
+                if ! pip3 show vcap > /dev/null; then
+                  pip3 install -r requirements.txt
+                fi
+      - save_cache:
+          key: v1-python-cache--{{ checksum "setup.py" }}
+          paths:
+            - /usr/local/lib/python3.6/
+            - /usr/lib/python3.6/
+            - /usr/lib/python3/
+      - run: python3 -m --junitxml=test-results/junit.xml pytest -x -s -vvv
+#      # Run Capsule tests in multiple containers. Use circleci commands to split the test files up.
+#      - run: >
+#          circleci tests glob **/test*.py |
+#          circleci tests split --split-by=timings |
+#          xargs python3 -m pytest --junitxml=test-results/junit.xml -x -s -vvv
+      - store_test_results:
+          path: test-results
