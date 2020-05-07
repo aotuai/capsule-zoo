@@ -14,8 +14,11 @@ jobs:
     resource_class: medium
 #    parallelism: 2
     steps:
-      - run: echo -e "Host github.com\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config
+      # Add pull dependencies
+      - add_ssh_keys
+      - run: echo -e "Host *\n\tStrictHostKeyChecking no" >> ~/.ssh/config
       - run: apt update && apt-get install -y ssh git git-lfs && git lfs install
+      # Pull the project
       - checkout
       # Install test dependencies
       - restore_cache:
