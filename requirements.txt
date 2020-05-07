@@ -1,0 +1,4 @@
+vcap==0.0.2
+vcap_utils==0.0.2
+pytest~=5.0
+mock~=3.0

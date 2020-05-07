@@ -1,0 +1,11 @@
+*.bf
+__pycache__/
+*.egg-info/
+.idea
+
+# Ignore cython output
+build/
+*.c
+*.so
+# Don't exclude dtag .so files
+!/production/detector_dtag/*.so
