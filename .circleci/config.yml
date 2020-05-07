@@ -29,11 +29,10 @@ jobs:
             - /usr/local/lib/python3.6/
             - /usr/lib/python3.6/
             - /usr/lib/python3/
-      - run: python3 -m pytest --junitxml=test-results/junit.xml -x -s -vvv
-#      # Run Capsule tests in multiple containers. Use circleci commands to split the test files up.
-#      - run: >
-#          circleci tests glob **/test*.py |
-#          circleci tests split --split-by=timings |
-#          xargs python3 -m pytest --junitxml=test-results/junit.xml -x -s -vvv
+      # Run Capsule tests in multiple containers. Use circleci commands to split the test files up.
+      - run: >
+          circleci tests glob **/test*.py |
+          circleci tests split --split-by=timings --timings-type=classname |
+          xargs python3 -m pytest --junitxml=test-results/junit.xml -x -s -vvv
       - store_test_results:
           path: test-results
