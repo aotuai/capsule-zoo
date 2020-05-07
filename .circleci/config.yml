@@ -22,7 +22,7 @@ jobs:
           key: v1-python-cache--{{ checksum "requirements.txt" }}
       - run: >
           if ! pip3 show vcap > /dev/null; then
-            pip3 install -r requirements.txt
+            pip3 install --quiet -r requirements.txt
           fi
       - save_cache:
           key: v1-python-cache--{{ checksum "requirements.txt" }}
@@ -30,7 +30,7 @@ jobs:
             - /usr/local/lib/python3.6/
             - /usr/lib/python3.6/
             - /usr/lib/python3/
-      - run: python3 -m --junitxml=test-results/junit.xml pytest -x -s -vvv
+      - run: python3 -m pytest --junitxml=test-results/junit.xml -x -s -vvv
 #      # Run Capsule tests in multiple containers. Use circleci commands to split the test files up.
 #      - run: >
 #          circleci tests glob **/test*.py |
