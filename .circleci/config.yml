@@ -14,8 +14,7 @@ jobs:
     resource_class: medium
 #    parallelism: 2
     steps:
-      - run: apt update && apt-get install -y ssh git git-lfs
-#      - ssh-keyscan bitbucket.org >> /root/.ssh/known_hosts
+      - run: apt update && apt-get install -y ssh git git-lfs && git lfs install
       - checkout
       # Install test dependencies
       - restore_cache:
