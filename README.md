@@ -8,7 +8,7 @@ This repository is used to store open source Vision Capsules created by Aotu. Th
 capsules are built using the [Open Vision Capsule format][open vision capsules].
 
 All of these models are compatible with and best run by BrainFrame. More information
-about Brainframe can be found [at our website](http://aotu.ai)
+about Brainframe can be found [at our website](http://aotu.ai).
 
 # Repository Structure
 All capsules are within the capsules/ directory. An unpackaged capsule is simply 
@@ -41,10 +41,10 @@ Here is an example of what you might see in the capsules/ directory:
         ├── openvino_model.bin
         └── openvino_model.xml
 ```
-Each subdirectory such as gender_classifier/ or person_detector/ is an unpackaged
+Each subdirectory, such as `gender_classifier/` or `person_detector/` is an unpackaged
 capsule that can be loaded (and automatically packaged) by BrainFrame. If you 
 have an existing BrainFrame installation, simply copy the desired capsule directory
-into the BrainFrame servers `capsules/` directory, and restart the server. BrainFrame
+into the BrainFrame server's `capsules/` directory, and restart the server. BrainFrame
 will automatically package and load the capsule. 
 
 For most or all of the capsules, the code was created by Aotu while the model 
@@ -52,7 +52,7 @@ files within may have been pulled from license friendly 3rd party sources.
 Each capsule that has a model will contain a `model.LICENSE` file which is
 the license associated with the source of that model. 
 Furthermore, if the model is from a 3rd party, links to the 3rd party creator 
-of the model will be given in the README.md of the capsule directory.
+of the model will be given in the `README.md` of the capsule directory.
 
 # Git LFS
 
@@ -62,12 +62,14 @@ Please see [the installation guide][install git lfs] for details.
 # Running Tests
 
 This repository contains a test suite that packages up and runs every capsule
-in the `capsules` directory.
+in the `capsules` directory. The tests use the `vcap` libraries existing test
+utility that fuzzes many inputs and assesses if the capsule is conforming to the
+ standard.
 
 Before running tests, install the necessary dependencies.
 
 ```commandline
-pip install -r requirements.txt
+pip install -r tests/requirements.txt
 ```
 
 Then, run the tests with `pytest`.

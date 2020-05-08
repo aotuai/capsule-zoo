@@ -3,7 +3,6 @@ from typing import List
 
 import pytest
 
-from vcap import CAPSULE_EXTENSION, package_capsule, load_capsule, BaseCapsule
 from vcap.testing import perform_capsule_tests
 
 # Retrieve all of the capsule paths in a pytest parametrize friendly way
