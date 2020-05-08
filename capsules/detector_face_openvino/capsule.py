@@ -2,7 +2,6 @@ from vcap import (
     BaseCapsule,
     NodeDescription,
     DeviceMapper,
-    FloatOption,
     common_detector_options
 )
 from .backend import Backend

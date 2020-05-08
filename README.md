@@ -1,3 +1,7 @@
+# Capsule Zoo
+| Tests | [![CircleCI](https://circleci.com/gh/aotuai/capsules.svg?style=svg)](https://circleci.com/gh/aotuai/capsules) |   |
+|-------|---------------------------------------------------------------------------------------------------------------|---|
+
 # Introduction
 
 This repository is used to store open source Vision Capsules created by Aotu. These
