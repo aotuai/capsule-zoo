@@ -24,13 +24,13 @@ jobs:
       - checkout
       # Install test dependencies
       - restore_cache:
-          key: v1-python-cache--{{ checksum "requirements.txt" }}
+          key: v1-python-cache--{{ checksum "tests/requirements.txt" }}
       - run: >
           if ! pip3 show vcap > /dev/null; then
-            pip3 install --quiet -r requirements.txt
+            pip3 install --quiet -r tests/requirements.txt
           fi
       - save_cache:
-          key: v1-python-cache--{{ checksum "requirements.txt" }}
+          key: v1-python-cache--{{ checksum "tests/requirements.txt" }}
           paths:
             - /usr/local/lib/python3.6/
             - /usr/lib/python3.6/
