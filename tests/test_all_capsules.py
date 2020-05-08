@@ -19,8 +19,7 @@ capsule_paths_argvals = [(path,) for path in capsule_paths]
     argvalues=capsule_paths_argvals,
     ids=capsule_paths)
 def test_public_capsules(unpackaged_capsule_dir):
-    """Test the capsules that the BrainFrame tests use to make sure they
-    pass the to the vcap capsule tests"""
+    """Test each capsules using the vcap provided test utilities."""
 
     image_paths = list(Path("tests/test-resources").glob("*"))
     perform_capsule_tests(
