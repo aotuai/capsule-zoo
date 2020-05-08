@@ -15,9 +15,11 @@ jobs:
 #    parallelism: 2
     steps:
       # Add pull dependencies
-      - add_ssh_keys
-      - run: echo -e "Host *\n\tStrictHostKeyChecking no" >> ~/.ssh/config
-      - run: apt update && apt-get install -y ssh git git-lfs && git lfs install
+      - run: mkdir -m 700 ~/.ssh/ &&
+             echo -e "Host *\n\tStrictHostKeyChecking no" >> ~/.ssh/config
+      - run: apt update &&
+             apt-get install -y ssh git git-lfs &&
+             git lfs install
       # Pull the project
       - checkout
       # Install test dependencies
