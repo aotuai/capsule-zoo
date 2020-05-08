@@ -14,7 +14,7 @@ Trained using the [Tensorflow Object Detection API](
 https://github.com/tensorflow/models/blob/master/research/object_detection)
 
 ###  Model File Origin
-Downloaded the pretrained model from the
+The pretrained model was downloaded from the
 [Tensorflow Object Detection Model Zoo](
 https://github.com/tensorflow/models/blob/master/research/object_detection/g3doc/detection_model_zoo.md)
 
