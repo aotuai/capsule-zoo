@@ -12,7 +12,7 @@ jobs:
     docker:
       - image: aotuai/brainframe_build_env:0.26.0
     resource_class: medium
-#    parallelism: 2
+    parallelism: 2
     steps:
       # Add pull dependencies
       - run: mkdir -m 700 ~/.ssh/ &&
