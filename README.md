@@ -1,4 +1,4 @@
-# BrainFrame Capsule Zoo
+# BrainFrame VisionCapsule Zoo
 | Tests | [![CircleCI](https://circleci.com/gh/aotuai/capsule_zoo/tree/master.svg?style=svg&circle-token=afb518744b2fce9932f645d081390eb4222d0b1d)](https://circleci.com/gh/aotuai/capsule_zoo/tree/master) |
 |-------|---------------------------------------------------------------------------------------------------------------|
 
