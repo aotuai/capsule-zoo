@@ -1,0 +1,8 @@
+{
+  "label_map": {
+    "1": "face",
+    "2": "background"
+  },
+  "num_train_samples": 0,
+  "num_test_samples": 0
+}
