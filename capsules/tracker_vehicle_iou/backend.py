@@ -22,7 +22,7 @@ class Backend(BaseBackend):
         tracker = state.get_tracker(
             min_iou=options[config.min_iou_for_iou_match],
             max_misses=options[config.max_misses],
-            n_hits_to_init=config.min_track_length)
+            n_hits_to_init=options[config.min_track_length])
 
         # Separate the license_plates from vehicles, to use different
         # tracking methods on them.
