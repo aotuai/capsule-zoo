@@ -47,12 +47,13 @@ have an existing BrainFrame installation, simply copy the desired capsule direct
 into the BrainFrame server's `capsules/` directory, and restart the server. BrainFrame
 will automatically package and load the capsule. 
 
-For most or all of the capsules, the code was created by Aotu while the model 
-files within may have been pulled from license friendly 3rd party sources. 
-Each capsule that has a model will contain a `model.LICENSE` file which is
-the license associated with the source of that model. 
-Furthermore, if the model is from a 3rd party, links to the 3rd party creator 
-of the model will be given in the `README.md` of the capsule directory.
+Currently all capsules in the repository were developed by Aotu, but pull 
+requests are encouraged if you would like to contribute.
+The model files the capsules use are either developed by Aotu or by 3rd parties,
+but permissively licensed in either case. Each capsule that has a model will 
+contain a `model.LICENSE` file associated with the source for that model. In 
+addition, if the model is from a 3rd party, links to the upstream source of the 
+model will be provided in the `README.md` of the capsule directory.
 
 # Git LFS
 
@@ -72,7 +73,7 @@ Before running tests, install the necessary dependencies.
 pip install -r tests/requirements.txt
 ```
 
-Then, run the tests with `pytest`.
+Then, run the tests with `pytest`, at the root of the repository.
 
 ```commandline
 pytest .
