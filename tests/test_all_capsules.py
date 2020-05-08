@@ -20,7 +20,7 @@ capsule_paths_argvals = [(path,) for path in capsule_paths]
 def test_capsules(unpackaged_capsule_dir):
     """Test each capsules using the vcap provided test utilities."""
 
-    image_paths = list(Path("tests/test-resources").glob("*"))
+    image_paths = list(Path("tests/test_resources").glob("*"))
     perform_capsule_tests(
         unpackaged_capsule_dir=unpackaged_capsule_dir,
         image_paths=image_paths)
