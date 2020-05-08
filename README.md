@@ -1,5 +1,6 @@
 # Capsule Zoo
-[![CircleCI](https://circleci.com/gh/aotuai/capsules.svg?style=svg)](https://circleci.com/gh/aotuai/capsules)
+| Tests | [![CircleCI](https://circleci.com/gh/aotuai/capsules.svg?style=svg)](https://circleci.com/gh/aotuai/capsules) |   |
+|-------|---------------------------------------------------------------------------------------------------------------|---|
 
 # Introduction
 
