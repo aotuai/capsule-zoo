@@ -1,11 +1,11 @@
-# BrainFrame Capsule Zoo
+# BrainFrame VisionCapsule Zoo
 | Tests | [![CircleCI](https://circleci.com/gh/aotuai/capsule_zoo/tree/master.svg?style=svg&circle-token=afb518744b2fce9932f645d081390eb4222d0b1d)](https://circleci.com/gh/aotuai/capsule_zoo/tree/master) |
 |-------|---------------------------------------------------------------------------------------------------------------|
 
 # Introduction
 
-This repository is used to store open source Vision Capsules created by Aotu. These
-capsules are built using the [Open Vision Capsule format][open vision capsules].
+This repository is used to store open source VisionCapsules created by Aotu. These
+capsules are built using the [OpenVisionCapsule format][open vision capsules].
 
 All of these models are compatible with and best run by BrainFrame. More information
 about Brainframe can be found [at our website](http://aotu.ai).
@@ -13,7 +13,7 @@ about Brainframe can be found [at our website](http://aotu.ai).
 # Repository Structure
 All capsules are within the capsules/ directory. An unpackaged capsule is simply 
 a directory with the required capsule files. For documentation on the format and 
-how to write your own capsules, please refer to the [Open Vision Capsules docs][ovc docs].
+how to write your own capsules, please refer to the [OpenVisionCapsules docs][ovc docs].
 
 
 Here is an example of what you might see in the capsules/ directory: 
