@@ -13,8 +13,6 @@ jobs:
       - image: aotuai/brainframe_build_env:0.26.0-openvino-2020
     resource_class: medium
     parallelism: 1
-    environment:
-      PYTHONPATH=$PYTHONPATH:/python_deps
     steps:
       # Add pull dependencies
       - run: mkdir -m 700 ~/.ssh/ &&
@@ -26,16 +24,13 @@ jobs:
       - checkout
       # Install test dependencies
       - restore_cache:
-          key: v1-python-cache--{{ checksum "tests/requirements.txt" }}
+          key: v2-python-cache--{{ checksum "tests/requirements.txt" }}
       - run: >
-          if ! pip3 show vcap > /dev/null; then
-            mkdir -p /python_deps
-            pip3 install --quiet -r tests/requirements.txt --target /python_deps
-          fi
+          pip3 install --quiet -r tests/requirements.txt --target /python_deps
       - save_cache:
-          key: v1-python-cache--{{ checksum "tests/requirements.txt" }}
+          key: v2-python-cache--{{ checksum "tests/requirements.txt" }}
           paths:
-            - /python_deps
+            - /root/.cache/pip
       # Run Capsule tests in multiple containers. Use circleci commands to split the test files up.
       - run: >
           circleci tests glob **/test*.py |
