@@ -16,8 +16,8 @@ class Capsule(BaseCapsule):
     output_type = NodeDescription(
         size=NodeDescription.Size.ALL,
         detections=["face"])
-    backend_loader = lambda capsule_files, device: Backend.from_bytes(
-        model_bytes=capsule_files["face-detection-adas-0001.xml"],
-        weights_bytes=capsule_files["face-detection-adas-0001.bin"],
+    backend_loader = lambda capsule_files, device: Backend(
+        model_xml=capsule_files["face-detection-adas-0001.xml"],
+        weights_bin=capsule_files["face-detection-adas-0001.bin"],
     )
     options = common_detector_options
