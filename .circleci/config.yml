@@ -10,7 +10,7 @@ workflows:
 jobs:
   run-tests:
     docker:
-      - image: aotuai/brainframe_build_env:0.26.0-openvino-2020
+      - image: aotuai/brainframe_build_env:0.26.0
     resource_class: medium
     parallelism: 1
     steps:
