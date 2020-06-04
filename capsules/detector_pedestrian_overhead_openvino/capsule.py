@@ -17,8 +17,8 @@ class Capsule(BaseCapsule):
     output_type = NodeDescription(
         size=NodeDescription.Size.ALL,
         detections=["person"])
-    backend_loader = lambda capsule_files, device: Backend.from_bytes(
-        model_bytes=capsule_files["person-detection-retail-0013.xml"],
-        weights_bytes=capsule_files["person-detection-retail-0013.bin"],
+    backend_loader = lambda capsule_files, device: Backend(
+        model_xml=capsule_files["person-detection-retail-0013.xml"],
+        weights_bin=capsule_files["person-detection-retail-0013.bin"],
     )
     options = common_detector_options
