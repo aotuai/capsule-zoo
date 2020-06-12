@@ -24,17 +24,13 @@ jobs:
       - checkout
       # Install test dependencies
       - restore_cache:
-          key: v1-python-cache--{{ checksum "tests/requirements.txt" }}
+          key: v2-python-cache--{{ checksum "tests/requirements.txt" }}
       - run: >
-          if ! pip3 show vcap > /dev/null; then
-            pip3 install --quiet -r tests/requirements.txt
-          fi
+          pip3 install --quiet -r tests/requirements.txt
       - save_cache:
-          key: v1-python-cache--{{ checksum "tests/requirements.txt" }}
+          key: v2-python-cache--{{ checksum "tests/requirements.txt" }}
           paths:
-            - /usr/local/lib/python3.6/
-            - /usr/lib/python3.6/
-            - /usr/lib/python3/
+            - /root/.cache/pip
       # Run Capsule tests in multiple containers. Use circleci commands to split the test files up.
       - run: >
           circleci tests glob **/test*.py |
