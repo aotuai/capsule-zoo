@@ -19,7 +19,8 @@ class Backend(BaseOpenVINOBackend):
                       options: Dict[str, OPTION_TYPE],
                       state: BaseStreamState) -> DETECTION_NODE_TYPE:
         input_dict, resize = self.prepare_inputs(frame)
-        prediction = self.send_to_batch(frame).get()
-        detections = self.parse_detection_results(prediction, resize)
-        return [d for d in detections
-                if d.extra_data["confidence"] > options["threshold"]]
+        prediction = self.send_to_batch(input_dict).get()
+        detections = self.parse_detection_results(
+            prediction, resize, self.label_map,
+            min_confidence=options["threshold"])
+        return detections

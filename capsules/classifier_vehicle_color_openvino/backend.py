@@ -20,15 +20,10 @@ class Backend(BaseOpenVINOBackend):
                       state: BaseStreamState) -> DETECTION_NODE_TYPE:
         resize = Resize(frame).crop_bbox(detection_node.bbox)
 
-        prediction = self.send_to_batch(resize.frame).get()
+        input_dict, _ = self.prepare_inputs(resize.frame)
+        prediction = self.send_to_batch(input_dict).get()
 
-        detection_node.attributes["color"] = prediction.color
+        max_color = config.colors[prediction["color"].argmax()]
+        max_type = config.vehicle_types[prediction["type"].argmax()]
 
-        # Unused
-        # detection_node.attributes["type"] = prediction.type
-
-    def parse_results(self, results: np.ndarray, resize: Resize):
-        max_color = config.colors[results["color"].argmax()]
-        max_type = config.vehicle_types[results["type"].argmax()]
-
-        return namedtuple("Attributes", "color type")(max_color, max_type)
+        detection_node.attributes["color"] = max_color

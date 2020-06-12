@@ -15,8 +15,10 @@ class Capsule(BaseCapsule):
         size=NodeDescription.Size.SINGLE,
         detections=config.vehicle_types,
         attributes={"color": config.colors})
-    backend_loader = lambda capsule_files, device: Backend.from_bytes(
-        model_bytes=capsule_files[
+    backend_loader = lambda capsule_files, device: Backend(
+        model_xml=capsule_files[
             "vehicle-attributes-recognition-barrier-0039.xml"],
-        weights_bytes=capsule_files[
-            "vehicle-attributes-recognition-barrier-0039.bin"])
+        weights_bin=capsule_files[
+            "vehicle-attributes-recognition-barrier-0039.bin"],
+        device_name=device
+    )
