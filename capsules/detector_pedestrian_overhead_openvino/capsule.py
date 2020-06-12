@@ -12,13 +12,14 @@ class Capsule(BaseCapsule):
     description = "CPU-only fast person detector. Works best in surveillance " \
                   "perspectives from a downwards facing point of view."
     version = 1
-    device_mapper = DeviceMapper.map_to_single_cpu()
+    device_mapper = DeviceMapper.map_to_all_myriad()
     input_type = NodeDescription(size=NodeDescription.Size.NONE)
     output_type = NodeDescription(
         size=NodeDescription.Size.ALL,
         detections=["person"])
-    backend_loader = lambda capsule_files, device: Backend.from_bytes(
-        model_bytes=capsule_files["person-detection-retail-0013.xml"],
-        weights_bytes=capsule_files["person-detection-retail-0013.bin"],
+    backend_loader = lambda capsule_files, device: Backend(
+        model_xml=capsule_files["person-detection-retail-0013.xml"],
+        weights_bin=capsule_files["person-detection-retail-0013.bin"],
+        device_name=device
     )
     options = common_detector_options
