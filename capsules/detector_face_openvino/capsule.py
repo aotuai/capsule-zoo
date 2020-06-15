@@ -11,7 +11,7 @@ class Capsule(BaseCapsule):
     name = "detector_face_openvino"
     description = "OpenVINO fast face detector."
     version = 1
-    device_mapper = DeviceMapper.map_to_single_cpu()
+    device_mapper = DeviceMapper.map_to_all_myriad()
     input_type = NodeDescription(size=NodeDescription.Size.NONE)
     output_type = NodeDescription(
         size=NodeDescription.Size.ALL,
@@ -19,5 +19,6 @@ class Capsule(BaseCapsule):
     backend_loader = lambda capsule_files, device: Backend(
         model_xml=capsule_files["face-detection-adas-0001.xml"],
         weights_bin=capsule_files["face-detection-adas-0001.bin"],
+        device_name=device
     )
     options = common_detector_options

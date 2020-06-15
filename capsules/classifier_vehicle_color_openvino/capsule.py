@@ -7,7 +7,7 @@ class Capsule(BaseCapsule):
     name = "classifier_vehicle_color_openvino"
     description = "OpenVINO vehicle color classifier."
     version = 1
-    device_mapper = DeviceMapper.map_to_single_cpu()
+    device_mapper = DeviceMapper.map_to_all_myriad()
     input_type = NodeDescription(
         size=NodeDescription.Size.SINGLE,
         detections=config.vehicle_types)
@@ -20,4 +20,5 @@ class Capsule(BaseCapsule):
             "vehicle-attributes-recognition-barrier-0039.xml"],
         weights_bin=capsule_files[
             "vehicle-attributes-recognition-barrier-0039.bin"],
-        device_name=device)
+        device_name=device
+    )
