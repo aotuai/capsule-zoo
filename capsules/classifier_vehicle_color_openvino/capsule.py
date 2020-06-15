@@ -7,7 +7,7 @@ class Capsule(BaseCapsule):
     name = "classifier_vehicle_color_openvino"
     description = "CPU-only vehicle color classifier."
     version = 1
-    device_mapper = DeviceMapper.map_to_single_cpu()
+    device_mapper = DeviceMapper.map_to_all_myriad()
     input_type = NodeDescription(
         size=NodeDescription.Size.SINGLE,
         detections=config.vehicle_types)
