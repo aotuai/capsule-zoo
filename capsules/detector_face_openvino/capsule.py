@@ -9,7 +9,7 @@ from .backend import Backend
 
 class Capsule(BaseCapsule):
     name = "detector_face_openvino"
-    description = "OpenVINO fast face detector."
+    description = "✨ OpenVINO fast face detector."
     version = 1
     device_mapper = DeviceMapper.map_to_all_myriad()
     input_type = NodeDescription(size=NodeDescription.Size.NONE)

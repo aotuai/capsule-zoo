@@ -18,9 +18,9 @@ class Backend(BaseOpenVINOBackend):
                       detection_node: DETECTION_NODE_TYPE,
                       options: Dict[str, OPTION_TYPE],
                       state: BaseStreamState) -> DETECTION_NODE_TYPE:
-        resize = Resize(frame).crop_bbox(detection_node.bbox)
+        crop = Resize(frame).crop_bbox(detection_node.bbox).frame
 
-        input_dict, _ = self.prepare_inputs(resize.frame)
+        input_dict, _ = self.prepare_inputs(crop)
         prediction = self.send_to_batch(input_dict).get()
 
         max_color = config.colors[prediction["color"].argmax()]
