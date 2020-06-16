@@ -1,4 +1,4 @@
-vcap==0.1.4.dev21
-vcap_utils==0.1.4.dev21
+vcap==0.2.0.dev25
+vcap_utils==0.2.0.dev25
 pytest~=5.0
 mock~=3.0
