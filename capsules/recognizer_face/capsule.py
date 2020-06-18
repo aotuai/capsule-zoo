@@ -47,7 +47,7 @@ class Capsule(BaseCapsule):
         model_name="vggface2_center_loss")
     options = {
         "recognition_threshold": FloatOption(
-            default=0.95,
+            default=0.8,
             min_val=0.0,
             max_val=None)
     }
