@@ -8,7 +8,7 @@ from .backend import Backend
 
 
 class Capsule(BaseCapsule):
-    name = "detector_people_overhead_openvino"
+    name = "detector_person_overhead_openvino"
     description = "OpenVINO fast person detector. Works best in " \
                   "surveillance perspectives from a downwards facing point " \
                   "of view."
