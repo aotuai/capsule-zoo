@@ -21,7 +21,8 @@ jobs:
       # Pull the project
       - checkout
       # Install test dependencies. The following line invalidates the cache whenever a new vcap version is released
-      - run: pip install vcap==FAKE_VERSION &> available-vcap-versions.txt; \
+      - run: |
+          pip install vcap==FAKE_VERSION &> available-vcap-versions.txt
           pip install vcap_utils==FAKE_VERSION 2>> available-vcap-versions.txt
       - restore_cache:
           key: v2-python-cache--{{ checksum "tests/requirements.txt" }}--{{ checksum "available-vcap-versions.txt" }}
