@@ -27,7 +27,7 @@ jobs:
       - restore_cache:
           key: v2-python-cache--{{ checksum "tests/requirements.txt" }}--{{ checksum "available-vcap-versions.txt" }}
       - run: >
-          pip3 install --quiet -r tests/requirements.txt
+          pip3 install --pre --quiet -r tests/requirements.txt
       - save_cache:
           key: v2-python-cache--{{ checksum "tests/requirements.txt" }}--{{ checksum "available-vcap-versions.txt" }}
           paths:
