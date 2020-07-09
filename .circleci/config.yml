@@ -25,11 +25,11 @@ jobs:
           pip3 install vcap==FAKE_VERSION &> available-vcap-versions.txt || true
           pip3 install vcap_utils==FAKE_VERSION 2>> available-vcap-versions.txt || true
       - restore_cache:
-          key: v2-python-cache--{{ checksum "tests/requirements.txt" }}--{{ checksum "available-vcap-versions.txt" }}
+          key: v3-python-cache--{{ checksum "tests/requirements.txt" }}--{{ checksum "available-vcap-versions.txt" }}
       - run: >
           pip3 install --pre --quiet -r tests/requirements.txt
       - save_cache:
-          key: v2-python-cache--{{ checksum "tests/requirements.txt" }}--{{ checksum "available-vcap-versions.txt" }}
+          key: v3-python-cache--{{ checksum "tests/requirements.txt" }}--{{ checksum "available-vcap-versions.txt" }}
           paths:
             - /root/.cache/pip
       # Run Capsule tests in multiple containers. Use circleci commands to split the test files up.
