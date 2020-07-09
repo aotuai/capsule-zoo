@@ -13,7 +13,7 @@ class Capsule(BaseCapsule):
                   "surveillance perspectives from a downwards facing point " \
                   "of view."
     version = 1
-    device_mapper = DeviceMapper.map_to_all_myriad()
+    device_mapper = DeviceMapper.map_to_single_cpu()
     input_type = NodeDescription(size=NodeDescription.Size.NONE)
     output_type = NodeDescription(
         size=NodeDescription.Size.ALL,
