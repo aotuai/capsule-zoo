@@ -5,8 +5,6 @@ workflows:
     jobs:
       - run-tests
 
-
-
 jobs:
   run-tests:
     docker:
@@ -22,13 +20,15 @@ jobs:
              git lfs install
       # Pull the project
       - checkout
-      # Install test dependencies
+      # Install test dependencies. The following line invalidates the cache whenever a new vcap version is released
+      - run: pip install vcap==FAKE_VERSION &> available-vcap-versions.txt; \
+          pip install vcap_utils==FAKE_VERSION 2>> available-vcap-versions.txt
       - restore_cache:
-          key: v2-python-cache--{{ checksum "tests/requirements.txt" }}
+          key: v2-python-cache--{{ checksum "tests/requirements.txt" }}--{{ checksum "available-vcap-versions.txt" }}
       - run: >
           pip3 install --quiet -r tests/requirements.txt
       - save_cache:
-          key: v2-python-cache--{{ checksum "tests/requirements.txt" }}
+          key: v2-python-cache--{{ checksum "tests/requirements.txt" }}--{{ checksum "available-vcap-versions.txt" }}
           paths:
             - /root/.cache/pip
       # Run Capsule tests in multiple containers. Use circleci commands to split the test files up.
