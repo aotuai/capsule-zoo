@@ -4,6 +4,7 @@ from vcap import (
     DeviceMapper,
     common_detector_options
 )
+from vcap_utils import BackendRpcProcess
 from .backend import Backend
 
 
@@ -18,7 +19,8 @@ class Capsule(BaseCapsule):
     output_type = NodeDescription(
         size=NodeDescription.Size.ALL,
         detections=["person"])
-    backend_loader = lambda capsule_files, device: Backend(
+    backend_loader = lambda capsule_files, device: BackendRpcProcess(
+        Backend,
         model_xml=capsule_files["person-detection-retail-0013.xml"],
         weights_bin=capsule_files["person-detection-retail-0013.bin"],
         device_name=device
