@@ -12,7 +12,7 @@ class Capsule(BaseCapsule):
     description = ("OpenVINO person, vehicle, and bike detector. Optimized "
                    "for surveillance camera scenarios.")
     version = 1
-    device_mapper = DeviceMapper.map_to_all_myriad()
+    device_mapper = DeviceMapper.map_to_openvino_devices()
     input_type = NodeDescription(size=NodeDescription.Size.NONE)
     output_type = NodeDescription(
        size=NodeDescription.Size.ALL,
