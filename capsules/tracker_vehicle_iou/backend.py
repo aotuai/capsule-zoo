@@ -46,7 +46,3 @@ class Backend(BaseBackend):
                 license_plate.track_id = uuid4()
 
         return detection_nodes
-
-    def close(self):
-        """There are no models to unload for this backend."""
-        pass
