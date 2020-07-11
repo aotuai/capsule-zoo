@@ -1,2 +1,2 @@
-vehicle_types = ["car", "bus", "truck", "van"]
+vehicle_types = ["vehicle", "car", "bus", "truck", "van"]
 colors = ["white", "gray", "yellow", "red", "green", "blue", "black"]
