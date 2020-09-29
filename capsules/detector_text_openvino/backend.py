@@ -85,8 +85,8 @@ class Backend(BaseBackend):
         detections = []
         for score, rect, feature_queue in zip(scores, rects, feature_queues):
             feature = feature_queue.get()['output']
-            feature.reshape(feature, (feature.shape[0], feature.shape[1], -1))
-            feature.transpose(feature, (0, 2, 1))
+            feature.reshape((feature.shape[0], feature.shape[1], -1))
+            feature.transpose((0, 2, 1))
 
             hidden = np.zeros(hidden_shape)
             prev_symbol_index = np.ones((1,)) * SOS_INDEX
