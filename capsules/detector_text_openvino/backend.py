@@ -27,7 +27,7 @@ class OpenVINOModel(BaseOpenVINOBackend):
                       detection_node: DETECTION_NODE_TYPE,
                       options: Dict[str, OPTION_TYPE],
                       state: BaseStreamState) -> DETECTION_NODE_TYPE:
-        raise NotImplemented('This backend is not for processing frames.'
+        raise NotImplemented('This backend is not for processing frames. '
                              'It is only used for storing a model.')
 
 
