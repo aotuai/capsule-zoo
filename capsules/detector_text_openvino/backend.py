@@ -27,7 +27,8 @@ class OpenVINOModel(BaseOpenVINOBackend):
                       detection_node: DETECTION_NODE_TYPE,
                       options: Dict[str, OPTION_TYPE],
                       state: BaseStreamState) -> DETECTION_NODE_TYPE:
-        raise NotImplemented('we no use this lel')
+        raise NotImplemented('This backend is not for processing frames.'
+                             'It is only used for storing a model.')
 
 
 class Backend(BaseBackend):
@@ -84,15 +85,14 @@ class Backend(BaseBackend):
         detections = []
         for score, rect, feature_queue in zip(scores, rects, feature_queues):
             feature = feature_queue.get()['output']
-            feature = np.reshape(feature,
-                                 (feature.shape[0], feature.shape[1], -1))
-            feature = np.transpose(feature, (0, 2, 1))
+            feature.reshape(feature, (feature.shape[0], feature.shape[1], -1))
+            feature.transpose(feature, (0, 2, 1))
 
             hidden = np.zeros(hidden_shape)
             prev_symbol_index = np.ones((1,)) * SOS_INDEX
 
             text = ''
-            for i in range(MAX_SEQ_LEN):
+            for _ in range(MAX_SEQ_LEN):
                 decoder_output = self.recognizer_decoder.send_to_batch({
                     'prev_symbol': prev_symbol_index,
                     'prev_hidden': hidden,
