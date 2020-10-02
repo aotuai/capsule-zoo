@@ -9,7 +9,8 @@ from vcap import (
     OPTION_TYPE,
     BaseStreamState)
 from vcap_utils import BaseOpenVINOBackend
-from . import config
+
+EMOTION_TYPES = ['neutral', 'happy', 'sad', 'surprise', 'anger']
 
 
 class Backend(BaseOpenVINOBackend):
@@ -23,6 +24,9 @@ class Backend(BaseOpenVINOBackend):
         input_dict, _ = self.prepare_inputs(crop)
         prediction = self.send_to_batch(input_dict).get()
 
-        max_emotion = config.emotion_types[prediction["prob_emotion"].argmax()]
+        emotion_id = prediction["prob_emotion"].argmax()
+        emotion = EMOTION_TYPES[emotion_id]
+        emotion_score = prediction["prob_emotion"].flatten()[emotion_id]
 
-        detection_node.attributes["emotion"] = max_emotion
+        detection_node.attributes["emotion"] = emotion
+        detection_node.extra_data["emotion_confidence"] = emotion_score
