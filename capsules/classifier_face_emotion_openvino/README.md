@@ -1,6 +1,6 @@
 # About the Capsule
 ## Usage
-This capsule is for detecting the the emotion of faces in video. It should be 
+This capsule is for detecting the emotion of faces in video. It should be 
 used in conjunction with a face detector. 
 
 ## Model
