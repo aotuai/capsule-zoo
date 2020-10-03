@@ -23,7 +23,10 @@ class Backend(BaseOpenVINOBackend):
         prediction = self.send_to_batch(input_dict).get()
 
         age = int(prediction['age_conv3'] * 100)
-        gender = config.genders[prediction['prob'].argmax()]
+        gender_id = prediction['prob'].argmax()
+        gender = config.genders[gender_id]
+        gender_confidence = prediction['prob'].flatten()[gender_id]
 
         detection_node.extra_data['age'] = age
         detection_node.attributes['gender'] = gender
+        detection_node.extra_data['gender_confidence'] = gender_confidence
