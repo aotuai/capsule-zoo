@@ -16,7 +16,8 @@ class Capsule(BaseCapsule):
     output_type = NodeDescription(
         size=NodeDescription.Size.SINGLE,
         detections=["face"],
-        attributes={"gender": config.genders},
+        attributes={"gender": config.genders,
+                    "age": list(config.age_bins.values())},
         extra_data=["age", "gender_confidence"]
     )
     backend_loader = lambda capsule_files, device: BackendRpcProcess(
