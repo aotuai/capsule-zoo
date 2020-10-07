@@ -11,9 +11,9 @@ from vcap_utils import BaseOpenVINOBackend
 from . import config
 
 
-def _get_age_bin(age: float):
+def _get_age_bin(age: float) -> str:
     bins = config.age_bins
-    if len(bins) is 0:
+    if len(bins) == 0:
         raise Exception('When binning, bin array must be larger than 0')
 
     age_bin = next(iter(config.age_bins.keys()))
