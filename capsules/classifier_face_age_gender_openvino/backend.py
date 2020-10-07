@@ -13,11 +13,11 @@ from . import config
 
 def _get_age_bin(age: float) -> str:
     bins = config.age_bins
-    age_bin = next(iter(bins.keys()))
+    age_bin = next(iter(bins.keys()))  # set to first bin
     for min_age, category in bins.items():
-        if age < min_age:
-            return age_bin
-        age_bin = category
+        if age < min_age:  # if less than current bin
+            return age_bin  # return the last bin
+        age_bin = category  # otherwise bin to current bin
 
     return age_bin
 
