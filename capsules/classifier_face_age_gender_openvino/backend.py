@@ -13,11 +13,8 @@ from . import config
 
 def _get_age_bin(age: float) -> str:
     bins = config.age_bins
-    if len(bins) == 0:
-        raise Exception('When binning, bin array must be larger than 0')
-
-    age_bin = next(iter(config.age_bins.keys()))
-    for min_age, category in config.age_bins.items():
+    age_bin = next(iter(bins.keys()))
+    for min_age, category in bins.items():
         if age < min_age:
             return age_bin
         age_bin = category
