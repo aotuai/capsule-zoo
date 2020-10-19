@@ -48,9 +48,6 @@ class Backend(BaseBackend):
                 self.recognizer_encoder.workload +
                 self.recognizer_decoder.workload)
 
-    def batch_predict(self, input_data_list: List[Any]) -> List[Any]:
-        raise NotImplemented('dont use this lel')
-
     def process_frame(self, frame: np.ndarray,
                       detection_node: DETECTION_NODE_TYPE,
                       options: Dict[str, OPTION_TYPE],
