@@ -60,7 +60,7 @@ class Backend(BaseOpenVINOBackend):
             # upper range, the other for the confidence in the lower range.
             remapped_value = abs(p - 0.5) * 2
             float_option = options[option]
-            detection_node.attributes[option] = (
+            detection_node.attributes[attribute_name] = (
                 attribute
                 if remapped_value > float_option else
                 ATTRIBUTES[attribute_name][2]
