@@ -1,7 +1,7 @@
 # About the Capsule
 ## Usage
-This capsule is for detecting the attributes of people in video. It should be 
-used in conjunction with a person detector. 
+This capsule is for detecting the attributes of people. It should be used in
+conjunction with a person detector. 
 
 ## Model
 ###  Model File Origin
