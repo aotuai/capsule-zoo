@@ -47,23 +47,22 @@ class Backend(BaseOpenVINOBackend):
         prediction = self.send_to_batch(input_dict).get()
 
         prediction = prediction['453'].flatten()
-        att = list(ATTRIBUTES.keys())
+        attribute_keys = list(ATTRIBUTES.keys())
 
         # Iterate over predictions and add attributes accordingly
-        for i, confidence in enumerate(prediction):
-            attribute_name = att[i]
-            attribute = ATTRIBUTES[attribute_name][
+        for attribute_key, confidence in zip(attribute_keys, prediction):
+            attribute = ATTRIBUTES[attribute_key][
                 0 if confidence >= 0.5 else 1
             ]
-            option = f"{attribute}_confidence"
+            option_key = f"{attribute}_confidence"
 
             # The confidence value is remapped to create 2 confidence
             # thresholds for the attribute; one for how confident it is in the
             # upper range, the other for the confidence in the lower range.
             remapped_confidence = abs(confidence - 0.5) * 2
-            float_option = options[option]
-            detection_node.attributes[attribute_name] = (
+            float_option = options[option_key]
+            detection_node.attributes[attribute_key] = (
                 attribute
                 if remapped_confidence > float_option else
-                ATTRIBUTES[attribute_name][2]
+                ATTRIBUTES[attribute_key][2]
             )
