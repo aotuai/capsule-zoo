@@ -47,10 +47,9 @@ class Backend(BaseOpenVINOBackend):
         prediction = self.send_to_batch(input_dict).get()
 
         prediction = prediction['453'].flatten()
-        attribute_keys = list(ATTRIBUTES.keys())
 
         # Iterate over predictions and add attributes accordingly
-        for attribute_key, confidence in zip(attribute_keys, prediction):
+        for attribute_key, confidence in zip(ATTRIBUTES.keys(), prediction):
             attribute = ATTRIBUTES[attribute_key][
                 0 if confidence >= 0.5 else 1
             ]
