@@ -1,12 +1,13 @@
-from vcap import BaseCapsule, NodeDescription, DeviceMapper
+from vcap import BaseCapsule, DeviceMapper, NodeDescription
 from vcap_utils import BackendRpcProcess
 
-from .backend import Backend, ATTRIBUTES, options
+from .backend import ATTRIBUTES, Backend, options
 
 
 class Capsule(BaseCapsule):
-    name = "classifier_face_age_gender_openvino"
-    description = "OpenVINO face age/gender classifier."
+    name = "classifier_person_attributes_openvino"
+    description = "OpenVINO powered person classifier, " \
+                  "for general person appearance attributes."
     version = 1
     device_mapper = DeviceMapper.map_to_openvino_devices()
     input_type = NodeDescription(
