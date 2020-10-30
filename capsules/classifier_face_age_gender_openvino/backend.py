@@ -36,7 +36,7 @@ class Backend(BaseOpenVINOBackend):
         age = int(prediction['age_conv3'] * 100)
         gender_id = prediction['prob'].argmax()
         gender = config.genders[gender_id]
-        gender_confidence = prediction['prob'].flatten()[gender_id]
+        gender_confidence = float(prediction['prob'].flatten()[gender_id])
 
         detection_node.extra_data['age'] = age
         detection_node.attributes['gender'] = gender
