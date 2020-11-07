@@ -1,4 +1,3 @@
-from collections import namedtuple
 from typing import Dict
 
 import numpy as np
@@ -24,6 +23,7 @@ class Backend(BaseOpenVINOBackend):
         prediction = self.send_to_batch(input_dict).get()
 
         max_color = config.colors[prediction["color"].argmax()]
-        max_type = config.vehicle_types[prediction["type"].argmax()]
+        max_type = config.vehicle_classifications[prediction["type"].argmax()]
 
         detection_node.attributes["color"] = max_color
+        detection_node.attributes["vehicle_type"] = max_type
