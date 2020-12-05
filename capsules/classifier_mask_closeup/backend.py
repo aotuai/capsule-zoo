@@ -8,10 +8,10 @@ from vcap import (
     OPTION_TYPE,
     BaseStreamState)
 from vcap_utils import BaseOpenVINOBackend
-from . import config
 
 
 class Backend(BaseOpenVINOBackend):
+    LABELS = ["not_wearing_mask", "wearing_mask"]
 
     def process_frame(self, frame: np.ndarray,
                       detection_node: DETECTION_NODE_TYPE,
@@ -22,8 +22,10 @@ class Backend(BaseOpenVINOBackend):
         input_dict, _ = self.prepare_inputs(crop)
         prediction = self.send_to_batch(input_dict).get()
 
-        max_color = config.colors[prediction["color"].argmax()]
-        max_type = config.vehicle_classifications[prediction["type"].argmax()]
+        # Convert prediction to a label
+        probability = prediction["fc5"].flatten()[0]
+        threshold = options["threshold"]
+        label = self.LABELS[int(probability > threshold)]
 
-        detection_node.attributes["color"] = max_color
-        detection_node.attributes["vehicle_type"] = max_type
+        detection_node.attributes["mask"] = label
+        detection_node.extra_data["mask_confidence"] = float(probability)
