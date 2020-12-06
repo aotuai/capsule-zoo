@@ -13,7 +13,7 @@ class Capsule(BaseCapsule):
     name = "detector_person_openvino"
     description = "OpenVINO generic person detector."
     version = 1
-    device_mapper = DeviceMapper(filter_func=lambda args: ["CPU:0"])
+    device_mapper = DeviceMapper.map_to_openvino_devices()
     input_type = NodeDescription(size=NodeDescription.Size.NONE)
     output_type = NodeDescription(
         size=NodeDescription.Size.ALL,
