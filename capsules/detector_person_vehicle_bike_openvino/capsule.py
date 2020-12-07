@@ -12,7 +12,7 @@ from .backend import Backend
 class Capsule(BaseCapsule):
     name = "detector_person_vehicle_bike_openvino"
     description = ("OpenVINO person, vehicle, and bike detector. Optimized "
-                   "for surveillance camera scenarios.")
+                   "for outdoor street crosswalk scenarios.")
     version = 1
     device_mapper = DeviceMapper.map_to_openvino_devices()
     input_type = NodeDescription(size=NodeDescription.Size.NONE)
