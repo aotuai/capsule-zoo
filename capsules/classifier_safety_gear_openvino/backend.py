@@ -82,6 +82,4 @@ class Backend(BaseOpenVINOBackend):
                 det.attributes[attributes[gear_type]["attribute_name"]] = \
                     attributes[gear_type]["possible_values"][1]
 
-        print(detection_nodes)
-
         return detection_nodes

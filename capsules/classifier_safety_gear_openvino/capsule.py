@@ -16,7 +16,7 @@ from .config import (
 
 class Capsule(BaseCapsule):
     name = "classifier_safety_gear_openvino"
-    description = "Roughly identify if person wearing safety hat " \
+    description = "Roughly identify if person is wearing safety hat " \
                   "and safety vest."
     version = 1
     device_mapper = DeviceMapper.map_to_openvino_devices()

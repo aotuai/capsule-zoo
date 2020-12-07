@@ -10,6 +10,8 @@ from .backend import Backend
 
 class Capsule(BaseCapsule):
     name = "detector_safety_gear_openvino"
+    description = "OpenVino's safety gear detector (safety vest and safety " \
+                  "hat)"
     version = 1
     device_mapper = DeviceMapper.map_to_openvino_devices()
     input_type = NodeDescription(size=NodeDescription.Size.NONE)
