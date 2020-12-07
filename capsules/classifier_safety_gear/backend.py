@@ -1,4 +1,4 @@
-from typing import Dict, List, Union
+from typing import Dict, Union
 
 import numpy as np
 
@@ -12,7 +12,6 @@ from vcap_utils import (
     BaseOpenVINOBackend,
     linear_assignment,
     iou_cost_matrix,
-    detection_iou,
 )
 
 from .config import (
