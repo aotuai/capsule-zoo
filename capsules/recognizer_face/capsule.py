@@ -25,7 +25,7 @@ class Backend(OpenFaceEncoder):
                 .pad_percent(top=pad, bottom=pad, left=pad, right=pad)
                 .apply(frame))
 
-        prediction = self.send_to_batch(crop).get()
+        prediction = self.send_to_batch(crop).result()
 
         detection_node.encoding = prediction.vector
 

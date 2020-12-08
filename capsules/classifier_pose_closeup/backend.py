@@ -27,7 +27,7 @@ class Backend(TFObjectDetector):
         confidence_threshold = options[config.confidence_threshold]
         iou_threshold = options[config.iou_threshold]
 
-        prediction = self.send_to_batch(frame).get()
+        prediction = self.send_to_batch(frame).result()
 
         behavior_detections = []
         for pred in prediction:

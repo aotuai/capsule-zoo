@@ -21,7 +21,7 @@ class Backend(TFObjectDetector):
                       detection_node: DETECTION_NODE_TYPE,
                       options: Dict[str, OPTION_TYPE],
                       state: BaseStreamState) -> DETECTION_NODE_TYPE:
-        prediction = self.send_to_batch(frame).get()
+        prediction = self.send_to_batch(frame).result()
         return [DetectionNode(
             name=det.name,
             coords=rect_to_coords(det.rect),

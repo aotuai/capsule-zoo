@@ -20,7 +20,7 @@ class Backend(BaseOpenVINOBackend):
         crop = Resize(frame).crop_bbox(detection_node.bbox).frame
 
         input_dict, _ = self.prepare_inputs(crop)
-        prediction = self.send_to_batch(input_dict).get()
+        prediction = self.send_to_batch(input_dict).result()
 
         max_color = config.colors[prediction["color"].argmax()]
         max_type = config.vehicle_classifications[prediction["type"].argmax()]
