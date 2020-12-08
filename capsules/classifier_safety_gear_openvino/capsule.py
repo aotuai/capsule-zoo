@@ -8,7 +8,6 @@ from .config import (
     with_safety_hat,
     with_safety_vest,
     capsule_options,
-    attributes,
 )
 
 
@@ -26,11 +25,8 @@ class Capsule(BaseCapsule):
         detections=["person"],
         attributes={safety_hat: with_safety_hat,
                     safety_vest: with_safety_vest},
-        extra_data=[attributes[safety_hat]["iou"],
-                    attributes[safety_hat]["confidence"],
-                    attributes[safety_vest]["iou"],
-                    attributes[safety_vest]["confidence"],
-                    ],
+        extra_data=["safety_hat_iou", "safety_hat_confidence",
+                    "safety_vest_iou", "safety_vest_confidence"],
     )
     backend_loader = lambda capsule_files, device: Backend(
         model_xml=capsule_files["worker_safety_mobilenet_FP16.xml"],

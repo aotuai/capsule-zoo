@@ -1,4 +1,4 @@
-from typing import Dict, Union
+from typing import Dict, List
 
 import numpy as np
 
@@ -6,7 +6,7 @@ from vcap import DETECTION_NODE_TYPE, OPTION_TYPE, BaseStreamState
 
 from vcap_utils import BaseOpenVINOBackend, linear_assignment, iou_cost_matrix
 
-from .config import safety_hat, safety_vest, gear_types, attributes
+from .config import safety_hat, safety_vest, gear_types
 
 from . import config
 
@@ -30,42 +30,43 @@ class Backend(BaseOpenVINOBackend):
             prediction, resize, self.label_map,
             min_confidence=confidence_threshold)
 
-        safety_gear_detections = {}
         for gear_type in gear_types:
-            safety_gear_detections[gear_type] = \
-                [detection for detection in detections if
-                 detection.class_name == gear_type]
-
-        for det in detection_nodes:
-            for safety_gear in gear_types:
-                det.attributes[attributes[safety_gear]["attribute_name"]] = \
-                    attributes[safety_gear]["possible_values"][0]
-                det.extra_data[attributes[safety_gear]["iou"]] = 0
-                det.extra_data[attributes[safety_gear]["confidence"]] = 0
-
-        if len(detections) == 0:
-            return detection_nodes
-
-        for gear_type in gear_types:
-            dets = safety_gear_detections[gear_type]
-            if len(dets) == 0:
-                continue
-            iou_threshold = options[attributes[gear_type]["iou_threshold"]]
-            iou_cost = iou_cost_matrix(detection_nodes, dets)
-            iou_cost[iou_cost > (1 - iou_threshold)] = 1
-            indices = linear_assignment(iou_cost)
-
-            for det_index, gear_index in indices:
-                det = detection_nodes[det_index]
-                best_match = dets[gear_index]
-                cost_iou = iou_cost[det_index][gear_index]
-                # Filter out detections whose IoU is less than the threshold
-                if cost_iou >= 1:
-                    continue
-                det.extra_data[attributes[gear_type]["confidence"]] = \
-                    best_match.extra_data["detection_confidence"]
-                det.extra_data[attributes[gear_type]["iou"]] = 1 - cost_iou
-                det.attributes[attributes[gear_type]["attribute_name"]] = \
-                    attributes[gear_type]["possible_values"][1]
+            assign_gear_attributes(
+                detection_nodes, detections, gear_type, options)
 
         return detection_nodes
+
+
+def assign_gear_attributes(person_detections: List[DETECTION_NODE_TYPE],
+                           gear_detections: List[DETECTION_NODE_TYPE],
+                           gear_type: str,
+                           options: Dict[str, OPTION_TYPE]):
+    """This function assigns DetectionNode.attributes[gear_type] to person
+    detections, based on the location of gear detection bounding boxes.
+    """
+    gear_detections = [g for g in gear_detections if g.class_name == gear_type]
+
+    for person_det in person_detections:
+        person_det.attributes[gear_type] = f"without_{gear_type}"
+        person_det.extra_data[f"{gear_type}_iou"] = 0
+        person_det.extra_data[f"{gear_type}_confidence"] = 0
+
+    if len(gear_detections) == 0:
+        return
+
+    iou_threshold = options[f"{gear_type}_iou_threshold"]
+    iou_cost = iou_cost_matrix(person_detections, gear_detections)
+    iou_cost[iou_cost > (1 - iou_threshold)] = 1
+    indices = linear_assignment(iou_cost)
+
+    for det_index, gear_index in indices:
+        person_det = person_detections[det_index]
+        best_match = gear_detections[gear_index]
+        cost_iou = iou_cost[det_index][gear_index]
+        # Filter out detections whose IoU is less than the threshold
+        if cost_iou >= 1:
+            continue
+        person_det.attributes[gear_type] = f"with_{gear_type}"
+        person_det.extra_data[f"{gear_type}_iou"] = 1 - cost_iou
+        person_det.extra_data[f"{gear_type}_confidence"] = \
+            best_match.extra_data["detection_confidence"]
