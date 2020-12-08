@@ -4,7 +4,7 @@ from vcap import (
     DeviceMapper,
     FloatOption
 )
-from vcap_utils import BackendRpcProcess
+
 from .backend import Backend
 
 

@@ -2,28 +2,13 @@ from typing import Dict, Union
 
 import numpy as np
 
-from vcap import (
-    DETECTION_NODE_TYPE,
-    OPTION_TYPE,
-    BaseStreamState,
-)
+from vcap import DETECTION_NODE_TYPE, OPTION_TYPE, BaseStreamState
 
-from vcap_utils import (
-    BaseOpenVINOBackend,
-    linear_assignment,
-    iou_cost_matrix,
-)
+from vcap_utils import BaseOpenVINOBackend, linear_assignment, iou_cost_matrix
 
-from .config import (
-    safety_hat,
-    safety_vest,
-    safety_gears,
-    attributes,
-)
+from .config import safety_hat, safety_vest, gear_types, attributes
 
 from . import config
-
-Num = Union[int, float]
 
 
 class Backend(BaseOpenVINOBackend):
@@ -46,13 +31,13 @@ class Backend(BaseOpenVINOBackend):
             min_confidence=confidence_threshold)
 
         safety_gear_detections = {}
-        for gear_type in safety_gears:
+        for gear_type in gear_types:
             safety_gear_detections[gear_type] = \
                 [detection for detection in detections if
                  detection.class_name == gear_type]
 
         for det in detection_nodes:
-            for safety_gear in safety_gears:
+            for safety_gear in gear_types:
                 det.attributes[attributes[safety_gear]["attribute_name"]] = \
                     attributes[safety_gear]["possible_values"][0]
                 det.extra_data[attributes[safety_gear]["iou"]] = 0
@@ -61,7 +46,7 @@ class Backend(BaseOpenVINOBackend):
         if len(detections) == 0:
             return detection_nodes
 
-        for gear_type in safety_gears:
+        for gear_type in gear_types:
             dets = safety_gear_detections[gear_type]
             if len(dets) == 0:
                 continue

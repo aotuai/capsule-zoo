@@ -1,9 +1,7 @@
-from vcap import (
-    BaseCapsule,
-    NodeDescription,
-    DeviceMapper,
-)
+from vcap import BaseCapsule, NodeDescription, DeviceMapper
+
 from .backend import Backend
+
 from .config import (
     safety_hat,
     safety_vest,

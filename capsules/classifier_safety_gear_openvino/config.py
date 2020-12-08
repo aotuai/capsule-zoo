@@ -3,7 +3,7 @@ from vcap import FloatOption
 safety_hat = "safety_hat"
 safety_vest = "safety_vest"
 
-safety_gears = [safety_hat, safety_vest]
+gear_types = [safety_hat, safety_vest]
 
 with_safety_hat = ["without_safe_hat", "with_safe_hat"]
 with_safety_vest = ["without_safe_vest", "with_safe_vest"]
@@ -29,8 +29,6 @@ attributes = {
 
     }
 }
-
-label_map = {1: "unknown", 2: "safety vest", 3: "unknown", 4: "safety hat"}
 
 capsule_options = {
     confidence_threshold: FloatOption(

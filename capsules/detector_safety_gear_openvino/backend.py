@@ -1,10 +1,8 @@
-from typing import Dict, List
+from typing import Dict
 
 import numpy as np
 
 from vcap import (
-    DetectionNode,
-    Resize,
     DETECTION_NODE_TYPE,
     OPTION_TYPE, BaseStreamState)
 from vcap_utils import BaseOpenVINOBackend
