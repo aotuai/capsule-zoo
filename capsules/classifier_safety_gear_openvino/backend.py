@@ -59,6 +59,7 @@ class Backend(BaseOpenVINOBackend):
                 det = detection_nodes[det_index]
                 best_match = dets[gear_index]
                 cost_iou = iou_cost[det_index][gear_index]
+                # Filter out detections whose IoU is less than the threshold
                 if cost_iou >= 1:
                     continue
                 det.extra_data[attributes[gear_type]["confidence"]] = \

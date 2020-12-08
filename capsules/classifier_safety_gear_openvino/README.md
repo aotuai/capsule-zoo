@@ -1,7 +1,8 @@
 # About the Capsule
 ## Usage
 This capsule is for classifying if a person wears safety equipment 
-(safety vest and safety hat).
+(safety vest and safety hat). It should be used in conjunction with a person 
+detector. 
 
 ## Model
 ###  Model File Origin
