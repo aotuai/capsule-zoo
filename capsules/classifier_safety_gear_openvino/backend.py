@@ -54,6 +54,7 @@ def assign_gear_attributes(person_detections: List[DETECTION_NODE_TYPE],
     if len(gear_detections) == 0:
         return
 
+    # Calculate the 'cost matrix' of every permutation of IOU to behavior
     iou_threshold = options[f"{gear_type}_iou_threshold"]
     iou_cost = iou_cost_matrix(person_detections, gear_detections)
     iou_cost[iou_cost > (1 - iou_threshold)] = 1
@@ -63,7 +64,9 @@ def assign_gear_attributes(person_detections: List[DETECTION_NODE_TYPE],
         person_det = person_detections[det_index]
         best_match = gear_detections[gear_index]
         cost_iou = iou_cost[det_index][gear_index]
-        # Filter out detections whose IoU is less than the threshold
+        # People bboxes and safety gear bboxes are aligned with linear
+        # assignment. However, this algorithm might align two bboxes with high
+        # IoU cost. We want to filter them out.
         if cost_iou >= 1:
             continue
         person_det.attributes[gear_type] = f"with_{gear_type}"

@@ -1,8 +1,15 @@
 # About the Capsule
 ## Usage
-This capsule is for classifying if a person wears safety equipment 
+This capsule is for classifying if a person is wearing safety equipment 
 (safety vest and safety hat). It should be used in conjunction with a person 
 detector. 
+
+This capsule will assign two attributes to a people detections, and the possible
+value are as following:
+```
+"safety_hat": ["with_safety_hat", "with_out_safety_hat"],
+"safety_hat_vest": ["with_safety_vest", "with_out_safety_vest"]
+```
 
 ## Model
 ###  Model File Origin
