@@ -7,8 +7,8 @@ detector.
 This capsule will assign two attributes to a people detections, and the possible
 value are as following:
 ```
-"safety_hat": ["with_safety_hat", "with_out_safety_hat"],
-"safety_hat_vest": ["with_safety_vest", "with_out_safety_vest"]
+"safety_hat": ["with_safety_hat", "without_safety_hat"],
+"safety_hat_vest": ["with_safety_vest", "without_safety_vest"]
 ```
 
 ## Model
