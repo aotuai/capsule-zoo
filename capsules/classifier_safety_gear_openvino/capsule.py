@@ -1,5 +1,7 @@
 from vcap import BaseCapsule, NodeDescription, DeviceMapper
 
+from vcap_utils import BackendRpcProcess
+
 from .backend import Backend
 
 from .config import (
@@ -28,7 +30,8 @@ class Capsule(BaseCapsule):
         extra_data=["safety_hat_iou", "safety_hat_confidence",
                     "safety_vest_iou", "safety_vest_confidence"],
     )
-    backend_loader = lambda capsule_files, device: Backend(
+    backend_loader = lambda capsule_files, device: BackendRpcProcess(
+        Backend,
         model_xml=capsule_files["worker_safety_mobilenet_FP16.xml"],
         weights_bin=capsule_files["worker_safety_mobilenet_FP16.bin"],
         device_name=device

@@ -16,11 +16,11 @@ class Backend(BaseOpenVINOBackend):
                                  3: "unknown", 4: safety_hat}
 
     def process_frame(self, frame: np.ndarray,
-                      detection_nodes: DETECTION_NODE_TYPE,
+                      detection_node: DETECTION_NODE_TYPE,
                       options: Dict[str, OPTION_TYPE],
                       state: BaseStreamState) -> DETECTION_NODE_TYPE:
-        if len(detection_nodes) == 0:
-            return detection_nodes
+        if len(detection_node) == 0:
+            return detection_node
 
         confidence_threshold = options[config.confidence_threshold]
 
@@ -32,9 +32,9 @@ class Backend(BaseOpenVINOBackend):
 
         for gear_type in gear_types:
             assign_gear_attributes(
-                detection_nodes, detections, gear_type, options)
+                detection_node, detections, gear_type, options)
 
-        return detection_nodes
+        return detection_node
 
 
 def assign_gear_attributes(person_detections: List[DETECTION_NODE_TYPE],
