@@ -68,7 +68,7 @@ class Backend(TFObjectDetector):
                     continue
                 det.attributes[config.pose] = best_match.class_name
                 det.extra_data[config.pose_confidence] = pose_confidence
-                det.extra_data[config.pose_iou] = pose_iou
+                det.extra_data[config.pose_iou] = float(pose_iou[0])
 
         # If you want to see the behavior detections as well, uncomment this
         # for b in behavior_detections:
