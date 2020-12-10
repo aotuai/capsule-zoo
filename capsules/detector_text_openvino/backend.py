@@ -66,7 +66,7 @@ class Backend(BaseBackend):
         input_image_info = np.asarray(
             [[input_image_size[0], input_image_size[1], 1]], dtype=np.float32)
         input_dict["im_info"] = input_image_info
-        prediction = self.detector.send_to_batch(input_dict).get()
+        prediction = self.detector.send_to_batch(input_dict).result()
 
         scores = prediction["scores"]
         detections_filter = scores > options["threshold"]
@@ -81,7 +81,7 @@ class Backend(BaseBackend):
 
         detections = []
         for score, rect, feature_queue in zip(scores, rects, feature_queues):
-            feature = feature_queue.get()['output']
+            feature = feature_queue.result()['output']
             feature = np.reshape(feature,
                                  (feature.shape[0], feature.shape[1], -1))
             feature = np.transpose(feature, (0, 2, 1))
@@ -95,7 +95,7 @@ class Backend(BaseBackend):
                     'prev_symbol': prev_symbol_index,
                     'prev_hidden': hidden,
                     'encoder_outputs': feature
-                }).get()
+                }).result()
                 symbols_distr = decoder_output['output']
                 prev_symbol_index = int(np.argmax(symbols_distr, axis=1))
                 if prev_symbol_index == EOS_INDEX:

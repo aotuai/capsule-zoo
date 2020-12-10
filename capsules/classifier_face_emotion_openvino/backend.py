@@ -22,7 +22,7 @@ class Backend(BaseOpenVINOBackend):
         crop = Resize(frame).crop_bbox(detection_node.bbox).frame
 
         input_dict, _ = self.prepare_inputs(crop)
-        prediction = self.send_to_batch(input_dict).get()
+        prediction = self.send_to_batch(input_dict).result()
 
         emotion_id = int(prediction["prob_emotion"].argmax())
         emotion = EMOTION_TYPES[emotion_id]

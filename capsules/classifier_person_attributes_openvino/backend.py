@@ -44,7 +44,7 @@ class Backend(BaseOpenVINOBackend):
                       state: BaseStreamState) -> DETECTION_NODE_TYPE:
         crop = Resize(frame).crop_bbox(detection_node.bbox).frame
         input_dict, _ = self.prepare_inputs(crop)
-        prediction = self.send_to_batch(input_dict).get()
+        prediction = self.send_to_batch(input_dict).result()
 
         prediction = prediction['453'].flatten()
 
