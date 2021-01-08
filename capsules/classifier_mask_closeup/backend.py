@@ -3,7 +3,7 @@ from typing import Dict
 import numpy as np
 
 from vcap import (
-    Resize,
+    Crop,
     DETECTION_NODE_TYPE,
     OPTION_TYPE,
     BaseStreamState)
@@ -17,7 +17,9 @@ class Backend(BaseOpenVINOBackend):
                       detection_node: DETECTION_NODE_TYPE,
                       options: Dict[str, OPTION_TYPE],
                       state: BaseStreamState) -> DETECTION_NODE_TYPE:
-        crop = Resize(frame).crop_bbox(detection_node.bbox).frame
+        crop = (Crop.from_detection(detection_node)
+                .pad_percent(top=10, bottom=10, left=10, right=10)
+                .apply(frame))
 
         input_dict, _ = self.prepare_inputs(crop)
         prediction = self.send_to_batch(input_dict).result()
