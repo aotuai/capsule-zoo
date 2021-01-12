@@ -1,8 +1,8 @@
 from pathlib import Path
-from typing import List
 
 import pytest
 
+from vcap import CAPSULE_EXTENSION, package_capsule, load_capsule
 from vcap.testing import perform_capsule_tests
 
 # Retrieve all of the capsule paths in a pytest parametrize friendly way
@@ -24,6 +24,31 @@ def test_capsules(unpackaged_capsule_dir: Path):
     perform_capsule_tests(
         unpackaged_capsule_dir=unpackaged_capsule_dir,
         image_paths=image_paths)
+
+
+@pytest.mark.parametrize(
+    argnames=["unpackaged_capsule_dir"],
+    argvalues=capsule_paths_argvals,
+    ids=capsule_paths)
+def test_capsule_meets_basic_standards(unpackaged_capsule_dir: Path):
+    """Ensures a capsule meets basic repository rules:
+        1) The capsule name matches it's directory name
+        2) Has a description
+    """
+    packaged_capsule_path = (unpackaged_capsule_dir
+                             .with_name(unpackaged_capsule_dir.stem)
+                             .with_suffix(CAPSULE_EXTENSION))
+    package_capsule(unpackaged_capsule_dir, packaged_capsule_path)
+    capsule = load_capsule(
+        packaged_capsule_path,
+        unpackaged_capsule_dir,
+        inference_mode=False)
+
+    assert capsule.name == unpackaged_capsule_dir.name, \
+        f"The capsule directory '{unpackaged_capsule_dir}' does not match the " \
+        f"capsules name '{capsule.name}'"
+    assert len(capsule.description) > 10, \
+        f"The capsule description '{capsule.description}' is too short!"
 
 
 @pytest.mark.parametrize(
