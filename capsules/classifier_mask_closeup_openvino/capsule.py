@@ -4,7 +4,7 @@ from .backend import Backend
 
 
 class Capsule(BaseCapsule):
-    name = "classifier_mask_openvino"
+    name = "classifier_mask_closeup_openvino"
     description = "OpenVINO face mask classifier."
     version = 1
     device_mapper = DeviceMapper.map_to_openvino_devices()
