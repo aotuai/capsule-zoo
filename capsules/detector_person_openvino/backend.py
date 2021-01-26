@@ -5,7 +5,8 @@ import numpy as np
 from vcap import (
     DETECTION_NODE_TYPE,
     OPTION_TYPE,
-    BaseStreamState)
+    BaseStreamState,
+    SizeFilter)
 from vcap_utils import BaseOpenVINOBackend, non_max_suppression
 
 
@@ -25,5 +26,12 @@ class Backend(BaseOpenVINOBackend):
         # Remove overlapping detections
         max_detection_overlap = options["max_detection_overlap"]
         detections = non_max_suppression(detections, max_detection_overlap)
-        
+
+        # Remove detections that are too small or too big
+        min_detection_area = options["min_detection_area"]
+        max_detection_area = options["max_detection_area"]
+        detections = (SizeFilter(detections)
+                      .min_area(min_detection_area)
+                      .max_area(max_detection_area)
+                      .apply())
         return detections

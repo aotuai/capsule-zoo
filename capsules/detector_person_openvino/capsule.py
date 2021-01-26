@@ -2,8 +2,9 @@ from vcap import (
     BaseCapsule,
     NodeDescription,
     DeviceMapper,
-    FloatOption,
-    common_detector_options
+    IntOption,
+    common_detector_options,
+    FloatOption
 )
 from vcap_utils import BackendRpcProcess
 from .backend import Backend
@@ -29,5 +30,13 @@ class Capsule(BaseCapsule):
         "max_detection_overlap": FloatOption(
             default=1.0,
             min_val=0.0,
-            max_val=1.0)
+            max_val=1.0),
+        "min_detection_area": IntOption(
+            default=0,
+            min_val=0,
+            max_val=None),
+        "max_detection_area": IntOption(
+            default=99999999,
+            min_val=0,
+            max_val=None),
     }
