@@ -5,7 +5,8 @@ import numpy as np
 from vcap import (
     DETECTION_NODE_TYPE,
     OPTION_TYPE,
-    BaseStreamState)
+    BaseStreamState,
+    SizeFilter)
 from vcap_utils import BaseOpenVINOBackend
 
 
@@ -27,4 +28,12 @@ class Backend(BaseOpenVINOBackend):
         if people_only:
             detections = [d for d in detections
                           if d.class_name == "person"]
+
+        # Remove too small and too big detections
+        min_detection_area = options["min_detection_area"]
+        max_detection_area = options["max_detection_area"]
+        detections = (SizeFilter(detections)
+                      .min_area(min_detection_area)
+                      .max_area(max_detection_area)
+                      .apply())
         return detections

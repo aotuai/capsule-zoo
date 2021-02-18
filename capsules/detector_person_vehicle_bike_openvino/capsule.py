@@ -3,7 +3,8 @@ from vcap import (
     NodeDescription,
     DeviceMapper,
     BoolOption,
-    common_detector_options
+    common_detector_options,
+    IntOption
 )
 from vcap_utils import BackendRpcProcess
 from .backend import Backend
@@ -31,5 +32,13 @@ class Capsule(BaseCapsule):
         **common_detector_options,
         "only_person_detections": BoolOption(
             default=False,
-            description="Filter out anything that's not a person detection")
+            description="Filter out anything that's not a person detection"),
+        "min_detection_area": IntOption(
+            default=0,
+            min_val=0,
+            max_val=None),
+        "max_detection_area": IntOption(
+            default=99999999,
+            min_val=0,
+            max_val=None),
     }
