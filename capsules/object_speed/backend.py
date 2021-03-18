@@ -24,7 +24,7 @@ class Backend(BaseBackend):
             # Calculate speed if it's not the first track
             pixel_distance = ((new_coord[0] - last_coord[0]) ** 2
                               + (new_coord[1] - last_coord[1]) ** 2) ** 0.5
-            time_elapsed = (new_tstamp - last_tstamp)
+            time_elapsed = new_tstamp - last_tstamp
             pixel_speed = pixel_distance / time_elapsed
             detection_node.extra_data["pixels_per_second_speed"] = pixel_speed
             detection_node.extra_data["pixel_travel"] = pixel_distance
