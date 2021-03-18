@@ -1,8 +1,20 @@
 from collections import OrderedDict
-from typing import Union, Tuple
+from typing import Optional, Tuple
 from uuid import UUID
+from dataclasses import dataclass
 
 from vcap import BaseStreamState
+
+
+@dataclass
+class DetectionTimestamp:
+    tstamp: float
+    """The timestamp when the detection was seen"""
+
+    coordinate: Tuple[int, int]
+    """The coordinate where the object was seen at that timestamp. This 
+    represents the centroid of the bounding box of the detection. 
+    """
 
 
 class StreamState(BaseStreamState):
@@ -14,30 +26,29 @@ class StreamState(BaseStreamState):
         self.cache = OrderedDict()
         """How many detection's information it can keep in the cache"""
 
-    def get(self, key: UUID) -> Union[Tuple[float, Tuple[int]],
-                                      Tuple[None, None]]:
+    def get(self, key: UUID) -> Optional[DetectionTimestamp]:
         """
         :param key: The detection.track_id
         :return: (timestamp, (x, y)) or (None, None) if there was no detection
             information for this track ID
         """
         if key not in self.cache:
-            return None, None
+            return None
         else:
             self.cache.move_to_end(key)
             return self.cache[key]
 
     def put(self, key: UUID,
-            value: Tuple[float, Tuple[int]],
-            capacity) -> None:
+            detection_tstamp: DetectionTimestamp,
+            capacity: float) -> None:
         """Records the new value and knocks out the least-recently-used value
 
         :param key: The detection.track_id
-        :param value: (timestamp, (x, y)) of the detection
+        :param detection_tstamp: The new DetectionTimestamp
         :param capacity: How many values the OrderedDict should be allowed to
         hold
         """
-        self.cache[key] = value
+        self.cache[key] = detection_tstamp
         self.cache.move_to_end(key)
         if len(self.cache) > capacity:
             self.cache.popitem(last=False)
