@@ -10,7 +10,7 @@ from .stream_state import StreamState
 
 
 class Capsule(BaseCapsule):
-    name = "object_speed"
+    name = "calculator_object_speed"
     description = "✨ Measure pixel-per-second speed on tracked detections, " \
                   "and puts the information in the extra_data field."
     version = 1
