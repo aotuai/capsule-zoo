@@ -1,5 +1,6 @@
 from typing import Dict
 from time import time
+import math
 
 import numpy as np
 
@@ -22,8 +23,9 @@ class Backend(BaseBackend):
                                  coordinate=detection_node.bbox.center)
         if last is not None:
             # Calculate speed if it's not the first track
-            pixel_distance = ((new.coordinate[0] - last.coordinate[0]) ** 2
-                              + (new.coordinate[1] - last.coordinate[1]) ** 2) ** 0.5
+            pixel_distance = math.hypot(
+                new.coordinate[0] - last.coordinate[0],
+                new.coordinate[1] - last.coordinate[1])
             time_elapsed = new.tstamp - last.tstamp
             pixel_speed = pixel_distance / time_elapsed
             detection_node.extra_data["pixels_per_second_speed"] = pixel_speed
