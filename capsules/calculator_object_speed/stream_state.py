@@ -29,8 +29,7 @@ class StreamState(BaseStreamState):
     def get(self, key: UUID) -> Optional[DetectionTimestamp]:
         """
         :param key: The detection.track_id
-        :return: (timestamp, (x, y)) or (None, None) if there was no detection
-            information for this track ID
+        :return: The DetectionTimeStamp for this tracked object.
         """
         if key not in self.cache:
             return None
