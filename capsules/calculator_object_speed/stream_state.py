@@ -1,13 +1,11 @@
 from collections import OrderedDict
-from typing import Optional, Tuple
+from typing import Optional, Tuple, NamedTuple
 from uuid import UUID
-from dataclasses import dataclass
 
 from vcap import BaseStreamState
 
 
-@dataclass
-class DetectionTimestamp:
+class DetectionTimestamp(NamedTuple):
     tstamp: float
     """The timestamp when the detection was seen"""
 
