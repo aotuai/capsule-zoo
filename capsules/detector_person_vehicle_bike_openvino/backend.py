@@ -7,7 +7,7 @@ from vcap import (
     OPTION_TYPE,
     BaseStreamState,
     SizeFilter)
-from vcap_utils import BaseOpenVINOBackend
+from vcap_utils import BaseOpenVINOBackend, non_max_suppression
 
 
 class Backend(BaseOpenVINOBackend):
@@ -23,11 +23,16 @@ class Backend(BaseOpenVINOBackend):
             prediction, resize, self.label_map,
             min_confidence=options["threshold"])
 
-        # This capsule has an option to filter out anything that's not "person"
-        people_only = options["only_person_detections"]
-        if people_only:
-            detections = [d for d in detections
-                          if d.class_name == "person"]
+        # Filter out detections based on capsule options
+        include_person_detections = options["include_person_detections"]
+        include_vehicle_detections = options["include_vehicle_detections"]
+        include_bike_detections = options["include_bike_detections"]
+        detections = [
+            d for d in detections
+            if (include_person_detections and d.class_name == "person")
+               or (include_vehicle_detections and d.class_name == "vehicle")
+               or (include_bike_detections and d.class_name == "bike")
+        ]
 
         # Remove too small and too big detections
         min_detection_area = options["min_detection_area"]
@@ -36,4 +41,8 @@ class Backend(BaseOpenVINOBackend):
                       .min_area(min_detection_area)
                       .max_area(max_detection_area)
                       .apply())
+
+        # Remove overlapping detections
+        max_detection_overlap = options["max_detection_overlap"]
+        detections = non_max_suppression(detections, max_detection_overlap)
         return detections
