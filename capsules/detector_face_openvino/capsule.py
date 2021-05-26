@@ -19,8 +19,8 @@ class Capsule(BaseCapsule):
         detections=["face"])
     backend_loader = lambda capsule_files, device: BackendRpcProcess(
         Backend,
-        model_xml=capsule_files["face-detection-adas-0001.xml"],
-        weights_bin=capsule_files["face-detection-adas-0001.bin"],
+        model_xml=capsule_files["face-detection-adas-0001-fp16.xml"],
+        weights_bin=capsule_files["face-detection-adas-0001-fp16.bin"],
         device_name=device
     )
     options = common_detector_options
