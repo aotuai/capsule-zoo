@@ -21,8 +21,8 @@ class Capsule(BaseCapsule):
         detections=["person"])
     backend_loader = lambda capsule_files, device: BackendRpcProcess(
         Backend,
-        model_xml=capsule_files["person-detection-0202-INT8.xml"],
-        weights_bin=capsule_files["person-detection-0202-INT8.bin"],
+        model_xml=capsule_files["person-detection-0202-fp16.xml"],
+        weights_bin=capsule_files["person-detection-0202-fp16.bin"],
         device_name=device
     )
     options = {
