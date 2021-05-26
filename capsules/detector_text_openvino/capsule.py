@@ -22,23 +22,23 @@ class Capsule(BaseCapsule):
     backend_loader = lambda capsule_files, device: Backend(
         detector=OpenVINOModel(
             model_xml=capsule_files[
-                "models/text-spotting-0001-detector.xml"],
+                "models/text-spotting-0002-detector-fp16.xml"],
             weights_bin=capsule_files[
-                "models/text-spotting-0001-detector.bin"],
+                "models/text-spotting-0002-detector-fp16.bin"],
             device_name=device
         ),
         recognizer_encoder=OpenVINOModel(
             model_xml=capsule_files[
-                "models/text-spotting-0001-recognizer-encoder.xml"],
+                "models/text-spotting-0002-recognizer-encoder-fp16.xml"],
             weights_bin=capsule_files[
-                "models/text-spotting-0001-recognizer-encoder.bin"],
+                "models/text-spotting-0002-recognizer-encoder-fp16.bin"],
             device_name=device
         ),
         recognizer_decoder=OpenVINOModel(
             model_xml=capsule_files[
-                "models/text-spotting-0001-recognizer-decoder.xml"],
+                "models/text-spotting-0002-recognizer-decoder-fp16.xml"],
             weights_bin=capsule_files[
-                "models/text-spotting-0001-recognizer-decoder.bin"],
+                "models/text-spotting-0002-recognizer-decoder-fp16.bin"],
             device_name=device
         )
     )
