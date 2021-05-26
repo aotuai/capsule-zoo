@@ -24,9 +24,9 @@ class Capsule(BaseCapsule):
     backend_loader = lambda capsule_files, device: BackendRpcProcess(
         Backend,
         model_xml=capsule_files[
-            "person-vehicle-bike-detection-crossroad-1016-fp32.xml"],
+            "person-vehicle-bike-detection-crossroad-1016-fp16.xml"],
         weights_bin=capsule_files[
-            "person-vehicle-bike-detection-crossroad-1016-fp32.bin"],
+            "person-vehicle-bike-detection-crossroad-1016-fp16.bin"],
         device_name=device
     )
     options = {
