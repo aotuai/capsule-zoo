@@ -1,5 +1,4 @@
 from vcap import BaseCapsule, NodeDescription, DeviceMapper
-from vcap_utils import BackendRpcProcess
 from .backend import Backend
 from . import config
 
@@ -17,8 +16,7 @@ class Capsule(BaseCapsule):
         detections=config.vehicle_classifications + ["vehicle"],
         attributes={"color": config.colors,
                     "vehicle_type": config.vehicle_classifications})
-    backend_loader = lambda capsule_files, device: BackendRpcProcess(
-        Backend,
+    backend_loader = lambda capsule_files, device: Backend(
         model_xml=capsule_files[
             "vehicle-attributes-recognition-barrier-0039.xml"],
         weights_bin=capsule_files[

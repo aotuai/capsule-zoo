@@ -6,7 +6,6 @@ from vcap import (
     common_detector_options,
     FloatOption
 )
-from vcap_utils import BackendRpcProcess
 from .backend import Backend
 
 
@@ -19,8 +18,7 @@ class Capsule(BaseCapsule):
     output_type = NodeDescription(
         size=NodeDescription.Size.ALL,
         detections=["person"])
-    backend_loader = lambda capsule_files, device: BackendRpcProcess(
-        Backend,
+    backend_loader = lambda capsule_files, device: Backend(
         model_xml=capsule_files["person-detection-0202-INT8.xml"],
         weights_bin=capsule_files["person-detection-0202-INT8.bin"],
         device_name=device
