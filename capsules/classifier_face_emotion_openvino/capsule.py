@@ -1,5 +1,4 @@
 from vcap import BaseCapsule, NodeDescription, DeviceMapper
-from vcap_utils import BackendRpcProcess
 from .backend import Backend, EMOTION_TYPES
 
 
@@ -17,8 +16,7 @@ class Capsule(BaseCapsule):
         attributes={"emotion": EMOTION_TYPES},
         extra_data=["emotion_confidence"]
     )
-    backend_loader = lambda capsule_files, device: BackendRpcProcess(
-        Backend,
+    backend_loader = lambda capsule_files, device: Backend(
         model_xml=capsule_files[
             "emotions-recognition-retail-0003-fp16.xml"],
         weights_bin=capsule_files[

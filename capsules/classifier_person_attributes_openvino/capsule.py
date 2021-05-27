@@ -1,5 +1,4 @@
 from vcap import BaseCapsule, DeviceMapper, NodeDescription
-from vcap_utils import BackendRpcProcess
 
 from .backend import ATTRIBUTES, Backend, options
 
@@ -18,8 +17,7 @@ class Capsule(BaseCapsule):
         detections=["person"],
         attributes=ATTRIBUTES,
     )
-    backend_loader = lambda capsule_files, device: BackendRpcProcess(
-        Backend,
+    backend_loader = lambda capsule_files, device: Backend(
         model_xml=capsule_files[
             "person-attributes-recognition-crossroad-0230-fp16.xml"],
         weights_bin=capsule_files[

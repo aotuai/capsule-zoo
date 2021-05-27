@@ -1,5 +1,4 @@
 from vcap import BaseCapsule, NodeDescription, DeviceMapper
-from vcap_utils import BackendRpcProcess
 
 from .backend import Backend
 from . import config
@@ -20,8 +19,7 @@ class Capsule(BaseCapsule):
                     "age": list(config.age_bins.values())},
         extra_data=["age", "gender_confidence"]
     )
-    backend_loader = lambda capsule_files, device: BackendRpcProcess(
-        Backend,
+    backend_loader = lambda capsule_files, device: Backend(
         model_xml=capsule_files[
             "age-gender-recognition-retail-0013-fp16.xml"],
         weights_bin=capsule_files[
