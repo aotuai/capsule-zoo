@@ -25,7 +25,7 @@ class Backend(BaseOpenVINOBackend):
         confidence_threshold = options[config.confidence_threshold]
 
         input_dict, resize = self.prepare_inputs(frame)
-        prediction = self.send_to_batch(input_dict).get()
+        prediction = self.send_to_batch(input_dict).result()
         detections = self.parse_detection_results(
             prediction, resize, self.label_map,
             min_confidence=confidence_threshold)
