@@ -8,7 +8,7 @@ workflows:
 jobs:
   run-tests:
     docker:
-      - image: aotuai/brainframe_build_env:0.29.0-2021.4-nogil
+      - image: aotuai/brainframe_build_env:0.29.0
     resource_class: medium
     parallelism: 1
     steps:
