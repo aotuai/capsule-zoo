@@ -18,8 +18,8 @@ class Capsule(BaseCapsule):
                     "vehicle_type": config.vehicle_classifications})
     backend_loader = lambda capsule_files, device: Backend(
         model_xml=capsule_files[
-            "vehicle-attributes-recognition-barrier-0039.xml"],
+            "vehicle-attributes-recognition-barrier-0039-fp16.xml"],
         weights_bin=capsule_files[
-            "vehicle-attributes-recognition-barrier-0039.bin"],
+            "vehicle-attributes-recognition-barrier-0039-fp16.bin"],
         device_name=device
     )

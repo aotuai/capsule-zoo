@@ -18,8 +18,8 @@ class Capsule(BaseCapsule):
     )
     backend_loader = lambda capsule_files, device: Backend(
         model_xml=capsule_files[
-            "emotions-recognition-retail-0003.xml"],
+            "emotions-recognition-retail-0003-fp16.xml"],
         weights_bin=capsule_files[
-            "emotions-recognition-retail-0003.bin"],
+            "emotions-recognition-retail-0003-fp16.bin"],
         device_name=device
     )

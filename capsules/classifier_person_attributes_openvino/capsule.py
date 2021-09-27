@@ -19,9 +19,9 @@ class Capsule(BaseCapsule):
     )
     backend_loader = lambda capsule_files, device: Backend(
         model_xml=capsule_files[
-            "person-attributes-recognition-crossroad-0230.xml"],
+            "person-attributes-recognition-crossroad-0230-fp16.xml"],
         weights_bin=capsule_files[
-            "person-attributes-recognition-crossroad-0230.bin"],
+            "person-attributes-recognition-crossroad-0230-fp16.bin"],
         device_name=device
     )
     options = options

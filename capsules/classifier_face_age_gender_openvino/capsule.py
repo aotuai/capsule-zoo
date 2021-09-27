@@ -21,8 +21,8 @@ class Capsule(BaseCapsule):
     )
     backend_loader = lambda capsule_files, device: Backend(
         model_xml=capsule_files[
-            "age-gender-recognition-retail-0013.xml"],
+            "age-gender-recognition-retail-0013-fp16.xml"],
         weights_bin=capsule_files[
-            "age-gender-recognition-retail-0013.bin"],
+            "age-gender-recognition-retail-0013-fp16.bin"],
         device_name=device
     )

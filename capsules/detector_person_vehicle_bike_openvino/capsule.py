@@ -22,9 +22,9 @@ class Capsule(BaseCapsule):
         detections=["vehicle", "person", "bike"])
     backend_loader = lambda capsule_files, device: Backend(
         model_xml=capsule_files[
-            "person-vehicle-bike-detection-crossroad-1016-fp32.xml"],
+            "person-vehicle-bike-detection-crossroad-1016-fp16.xml"],
         weights_bin=capsule_files[
-            "person-vehicle-bike-detection-crossroad-1016-fp32.bin"],
+            "person-vehicle-bike-detection-crossroad-1016-fp16.bin"],
         device_name=device
     )
     options = {
