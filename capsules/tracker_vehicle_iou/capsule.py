@@ -11,7 +11,7 @@ from . import config
 
 class Capsule(BaseCapsule):
     name = "tracker_vehicle_iou"
-    description = "✨ Efficient vehicle tracker using IOU."
+    description = "✨ V1.1 Efficient vehicle tracker using IOU."
     version = 1
     device_mapper = DeviceMapper.map_to_single_cpu()
     stream_state = StreamState

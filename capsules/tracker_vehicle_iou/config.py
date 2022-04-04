@@ -14,6 +14,7 @@ tracks_classes = [
     "vehicle",
     "license_plate",
     "bike",
+    "special vehicle",
     "person"
 ]
 
