@@ -34,4 +34,10 @@ class Backend(BaseOpenVINOBackend):
                       .min_area(min_detection_area)
                       .max_area(max_detection_area)
                       .apply())
+
+        for det in detections:
+            w = det.bbox.size[0]
+            h = det.bbox.size[1]
+            det.extra_data['pixels'] = int(w * h)
+
         return detections
