@@ -12,7 +12,9 @@ tracks_classes = [
     "truck",
     "boat",
     "vehicle",
-    "license_plate"
+    "license_plate",
+    "bike",
+    "person"
 ]
 
 capsule_options = {
