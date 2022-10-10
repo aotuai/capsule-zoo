@@ -72,4 +72,4 @@ def assign_gear_attributes(person_detections: List[DETECTION_NODE_TYPE],
         person_det.attributes[gear_type] = f"with_{gear_type}"
         person_det.extra_data[f"{gear_type}_iou"] = 1 - cost_iou
         person_det.extra_data[f"{gear_type}_confidence"] = \
-            best_match.extra_data["detection_confidence"]
+            best_match.extra_data["confidence"]
