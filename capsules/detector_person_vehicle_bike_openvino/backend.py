@@ -44,5 +44,6 @@ class Backend(BaseOpenVINOBackend):
 
         # Remove overlapping detections
         max_detection_overlap = options["max_detection_overlap"]
-        detections = non_max_suppression(detections, max_detection_overlap)
+        if len(detections) > 0:
+            detections = non_max_suppression(detections, max_detection_overlap)
         return detections
