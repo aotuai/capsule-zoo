@@ -15,6 +15,8 @@ jobs:
       # Add pull dependencies
       - run: mkdir -m 700 ~/.ssh/ &&
              echo -e "Host *\n\tStrictHostKeyChecking no" >> ~/.ssh/config
+      - run: apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys A4B469963BF863CC
+      - run: apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys F60F4B3D7FA2AF80
       - run: apt update &&
              apt-get install -y ssh git git-lfs &&
              git lfs install
