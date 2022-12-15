@@ -8,9 +8,9 @@ workflows:
 jobs:
   run-tests:
     docker:
-      - image: aotuai/brainframe_build_env:0.29.0
+      - image: aotuai/brainframe_build_env:0.29.2.2
     resource_class: medium
-    parallelism: 1
+    parallelism: 2
     steps:
       # Add pull dependencies
       - run: mkdir -m 700 ~/.ssh/ &&
