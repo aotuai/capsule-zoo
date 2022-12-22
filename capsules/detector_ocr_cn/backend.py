@@ -1,3 +1,4 @@
+import logging
 from typing import Dict, List, Any
 from time import time
 
@@ -56,6 +57,7 @@ class Backend(BaseBackend):
         object_enable = options["object"]
         noise_enable  = options["noise"]
 
+        logging.info(f"OCR INPUT: {detection_nodes}")
         textzones = []
         if  (screen_enable is True and detection_nodes.class_name == 'screen') or \
             (cell_enable   is True and detection_nodes.class_name in ['home_cell', 'roaming_cell']) or \
@@ -64,6 +66,7 @@ class Backend(BaseBackend):
 
             textzones.append(detection_nodes)
 
+        logging.info(f"OCR textzones: {textzones}")
         detections = []
         for textzone in textzones:
             crop = Resize(frame).crop_bbox(textzone.bbox).frame
@@ -84,6 +87,7 @@ class Backend(BaseBackend):
     
             time2 = time()
     
+            logging.info(f"OCR OUTPUT: {textzone}")
             detections += self.create_ocr_text_detections(textzone.bbox, dt_boxes, results)
 
         return [d for d in detections if d is not None]
