@@ -4,24 +4,22 @@ from vcap import (
     DeviceMapper,
     BoolOption,
     IntOption,
-    BaseStreamState,
     common_detector_options,
 )
 
 from .backend import Backend
+from .ocr_state import StreamState
+
 detection_confidence = "confidence"
+
 
 class Capsule(BaseCapsule):
     name = "detector_ocr_cn"
     description = "✨ v1.1 OCR text detector and recognition: support over 6000 Chinese charactors."
     version = 1
-    stream_state = BaseStreamState
+    stream_state = StreamState
     device_mapper = DeviceMapper.map_to_single_cpu()
-    input_type = NodeDescription(
-        size=NodeDescription.Size.SINGLE,
-        detections=["home_cell", "home_cell object", "home_cell object noise",
-                    "roaming_cell", "roaming_cell object", "roaming_cell object noise",
-                    "screen"])
+    input_type = NodeDescription(size=NodeDescription.Size.NONE)
     output_type = NodeDescription(
         size=NodeDescription.Size.ALL,
         detections=["text"],
@@ -34,18 +32,17 @@ class Capsule(BaseCapsule):
     )
     options = {
         **common_detector_options,
-        "screen": BoolOption(default=False),
-        "cell": BoolOption(default=False),
-        "object": BoolOption(default=True),
-        "noise": BoolOption(default=True),
-        "min_detection_area": IntOption(
-            default=0,
-            min_val=0,
-            max_val=None),
-        "max_detection_area": IntOption(
-            default=99999999,
-            min_val=0,
-            max_val=None),
+        "cell": BoolOption(default=True),
+        "cell_x": IntOption(
+            default=115, min_val=0, max_val=None,
+            description="X coordinate at the upper left corner of the cell."),
+        "cell_y": IntOption(
+            default=0, min_val=0, max_val=None,
+            description="Y coordinate at the upper left corner of the cell."),
+        "cell_width": IntOption(
+            default=410, min_val=10, max_val=None,
+            description="The width of the cell."),
+        "cell_height": IntOption(
+            default=720, min_val=10, max_val=None,
+            description="The height of the cell."),
     }
-
-
