@@ -1,6 +1,4 @@
-from typing import Dict
-import time
-
+from typing import Dict, Tuple
 import numpy as np
 import tempfile
 from pathlib import Path
@@ -51,6 +49,7 @@ class Backend(BaseBackend):
                       state: StreamState) -> DETECTION_NODE_TYPE:
         is_cell = options["cell"]
 
+        cell_x, cell_y = 0, 0
         if is_cell:
             cell_x = options["cell_x"]
             cell_y = options["cell_y"]
@@ -77,7 +76,7 @@ class Backend(BaseBackend):
         # 识别 results: 单纯的识别结果，results_info: 识别结果+置信度
         results, results_info = ocr_sys.recognition_img(dt_boxes)
 
-        raw_detections = self.create_ocr_text_detections(dt_boxes, results)
+        raw_detections = self.create_ocr_text_detections(dt_boxes, results, is_cell, (cell_x, cell_y))
         detections = [d for d in raw_detections if d is not None]
 
         if is_cell:
@@ -85,7 +84,7 @@ class Backend(BaseBackend):
 
         return detections
 
-    def create_ocr_text_detections(self, boxes, txts):
+    def create_ocr_text_detections(self, boxes, txts, is_cell, offset: Tuple[int, int]):
         detections = []
 
         if txts is None or len(txts) != len(boxes):
@@ -94,9 +93,14 @@ class Backend(BaseBackend):
         for idx, (box, txt) in enumerate(zip(boxes, txts)):
             extra_data = {"ocr": txt[0],
                           detection_confidence: float(txt[1])}
+            if is_cell:
+                offset_x, offset_y = offset
+            else:
+                offset_x, offset_y = 0, 0
+            x1, y1 = int(box[0][0]) + offset_x, int(box[0][1]) + offset_y
+            x2, y2 = int(box[2][0]) + offset_x, int(box[2][1]) + offset_y
 
-            box_rect = [int(box[0][0]), int(box[0][1]),
-                        int(box[2][0]), int(box[2][1])]
+            box_rect = [x1, y1, x2, y2]
             detection = DetectionNode(name='text',
                                       coords=rect_to_coords(box_rect),
                                       extra_data=extra_data)
