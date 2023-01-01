@@ -11,18 +11,18 @@ from . import config
 
 class Capsule(BaseCapsule):
     name = "tracker_vehicle_iou"
-    description = "✨ V1.1 Efficient vehicle tracker using IOU."
+    description = "✨ v1.2 Efficient vehicle, person tracker using IOU."
     version = 1
     device_mapper = DeviceMapper.map_to_single_cpu()
     stream_state = StreamState
     input_type = NodeDescription(
         size=NodeDescription.Size.ALL,
         detections=config.tracks_classes,
-        extra_data=["detection_confidence"])
+        extra_data=["confidence"])
     output_type = NodeDescription(
         size=NodeDescription.Size.ALL,
         tracked=True,
         detections=config.tracks_classes,
-        extra_data=["detection_confidence"])
+        extra_data=["confidence"])
     backend_loader = lambda capsule_files, device: Backend()
     options = config.capsule_options
