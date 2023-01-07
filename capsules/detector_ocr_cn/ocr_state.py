@@ -1,3 +1,4 @@
+import logging
 from copy import deepcopy
 
 import numpy as np
@@ -61,7 +62,13 @@ class StreamState(BaseStreamState):
         self.last_detections = []
 
     def is_similar_frame(self, cell_frame):
-        return not frames_different(self.last_cell_frame, cell_frame)
+        is_diff = False
+        try:
+            is_diff = frames_different(self.last_cell_frame, cell_frame)
+        except Exception as e:
+            logging.warning(f"Failed to compare frames, {e}")
+
+        return not is_diff
 
     def get_last_detections(self):
         return self.last_detections

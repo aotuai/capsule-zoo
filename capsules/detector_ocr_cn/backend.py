@@ -1,3 +1,4 @@
+import logging
 from typing import Dict, Tuple
 import numpy as np
 import tempfile
@@ -47,40 +48,45 @@ class Backend(BaseBackend):
                       detection_nodes: DETECTION_NODE_TYPE,
                       options: Dict[str, OPTION_TYPE],
                       state: StreamState) -> DETECTION_NODE_TYPE:
-        is_cell = options["cell"]
+        detections = []
 
-        cell_x, cell_y = 0, 0
-        if is_cell:
-            cell_x = options["cell_x"]
-            cell_y = options["cell_y"]
-            cell_width = options["cell_width"]
-            cell_height = options["cell_height"]
-            cell_bbox = BoundingBox(cell_x, cell_y, cell_x + cell_width, cell_y + cell_height)
-            frame = Resize(frame).crop_bbox(cell_bbox).frame
+        try:
+            is_cell = options["cell"]
 
-            if state.is_similar_frame(frame):
-                state.update_last_frame(frame)
-                detections = []
-                detections.extend(state.get_last_detections())
-                return detections
+            cell_x, cell_y = 0, 0
+            if is_cell:
+                cell_x = options["cell_x"]
+                cell_y = options["cell_y"]
+                cell_width = options["cell_width"]
+                cell_height = options["cell_height"]
+                cell_bbox = BoundingBox(cell_x, cell_y, cell_x + cell_width, cell_y + cell_height)
+                frame = Resize(frame).crop_bbox(cell_bbox).frame
 
-        # Setup OCR-检测-识别 System
-        ocr_sys = OcrDetRec(self.onet_det_session, self.onet_rec_session, self.dict_character)
+                if state.is_similar_frame(frame):
+                    state.update_last_frame(frame)
+                    detections = []
+                    detections.extend(state.get_last_detections())
+                    return detections
 
-        # OCR-检测-识别
-        ocr_sys.ocr_det_rec_img(frame)
+            # Setup OCR-检测-识别 System
+            ocr_sys = OcrDetRec(self.onet_det_session, self.onet_rec_session, self.dict_character)
 
-        # 得到检测框
-        dt_boxes = ocr_sys.get_boxes()
+            # OCR-检测-识别
+            ocr_sys.ocr_det_rec_img(frame)
 
-        # 识别 results: 单纯的识别结果，results_info: 识别结果+置信度
-        results, results_info = ocr_sys.recognition_img(dt_boxes)
+            # 得到检测框
+            dt_boxes = ocr_sys.get_boxes()
 
-        raw_detections = self.create_ocr_text_detections(dt_boxes, results, is_cell, (cell_x, cell_y))
-        detections = [d for d in raw_detections if d is not None]
+            # 识别 results: 单纯的识别结果，results_info: 识别结果+置信度
+            results, results_info = ocr_sys.recognition_img(dt_boxes)
 
-        if is_cell:
-            state.update_last_frame(frame, detections)
+            raw_detections = self.create_ocr_text_detections(dt_boxes, results, is_cell, (cell_x, cell_y))
+            detections = [d for d in raw_detections if d is not None]
+
+            if is_cell:
+                state.update_last_frame(frame, detections)
+        except Exception as e:
+            logging.warning(f"Failed to process ocr frame, {e}")
 
         return detections
 
