@@ -3,6 +3,7 @@ from typing import Dict, Tuple
 import numpy as np
 import tempfile
 from pathlib import Path
+import time
 
 from vcap import (
     Resize,
@@ -51,6 +52,7 @@ class Backend(BaseBackend):
         detections = []
 
         try:
+            start_time = time.time()
             is_cell = options["cell"]
 
             cell_x, cell_y = 0, 0
@@ -82,6 +84,16 @@ class Backend(BaseBackend):
 
             raw_detections = self.create_ocr_text_detections(dt_boxes, results, is_cell, (cell_x, cell_y))
             detections = [d for d in raw_detections if d is not None]
+
+            end_time = time.time()
+            end_time = end_time - start_time
+
+            if end_time <= 3:
+                time.sleep(3)
+            elif end_time <= 6:
+                time.sleep(round(9-end_time))
+            elif end_time <= 9:
+                time.sleep(round(12-end_time))
 
             if is_cell:
                 state.update_last_frame(frame, detections)
