@@ -15,7 +15,7 @@ detection_confidence = "confidence"
 
 class Capsule(BaseCapsule):
     name = "detector_ocr_cn"
-    description = "✨ v1.1 OCR text detector and recognition: support over 6000 Chinese charactors."
+    description = "✨ v1.2 OCR text detector and recognition: support over 6000 Chinese charactors."
     version = 1
     stream_state = StreamState
     device_mapper = DeviceMapper.map_to_single_cpu()
