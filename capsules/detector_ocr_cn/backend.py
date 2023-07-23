@@ -64,11 +64,11 @@ class Backend(BaseBackend):
                 cell_bbox = BoundingBox(cell_x, cell_y, cell_x + cell_width, cell_y + cell_height)
                 frame = Resize(frame).crop_bbox(cell_bbox).frame
 
-                if state.is_similar_frame(frame):
-                    state.update_last_frame(frame)
-                    detections = []
-                    detections.extend(state.get_last_detections())
-                    return detections
+                # if state.is_similar_frame(frame):
+                #     state.update_last_frame(frame)
+                #     detections = []
+                #     detections.extend(state.get_last_detections())
+                #     return detections
 
             # Setup OCR-检测-识别 System
             ocr_sys = OcrDetRec(self.onet_det_session, self.onet_rec_session, self.dict_character)
