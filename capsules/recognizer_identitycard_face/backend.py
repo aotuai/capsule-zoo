@@ -10,7 +10,7 @@ from vcap import (
     DetectionNode,
     OPTION_TYPE)
 
-from vcap_utils import OpenFaceEncoder
+from vcap_utils import OpenFaceEncoder, cosine_distance
 
 
 class Backend(OpenFaceEncoder):
@@ -27,7 +27,7 @@ class Backend(OpenFaceEncoder):
         # trained.
         prediction = []
         for det in detection_node:
-            #crop = Resize(frame).crop_bbox(det.bbox).frame
+            # crop = Resize(frame).crop_bbox(det.bbox).frame
             pad = 15
             crop = (Crop.from_detection(det)
                     .pad_percent(top=pad, bottom=pad, left=pad, right=pad)
@@ -38,7 +38,7 @@ class Backend(OpenFaceEncoder):
         # detection_node.encoding = prediction.vector
         value, confident = self.vector_compare(prediction)
 
-        coords = detection_node[0].coords #.extend(detection_node[1].coords)
+        coords = detection_node[0].coords  # .extend(detection_node[1].coords)
         face_node = DetectionNode(
             name="face_compare",
             coords=coords,
@@ -48,8 +48,17 @@ class Backend(OpenFaceEncoder):
         return detections
 
     @staticmethod
-    def vector_compare(predictions):
+    def vector_compare(predictions, recognition_threshold=0.5):
         # compare prediction.vertor at here
+        if len(predictions) != 2:
+            return False, 0.0
 
-        return True, 0.5
+        identity_vec = np.array([predictions[0].encoding])
+        candidate_vec = np.array([predictions[1].encoding])
 
+        distances = cosine_distance(candidate_vec, identity_vec)
+        distances = abs(distances)
+        lowest_index = np.argmin(distances)
+        lowest_distance = distances[lowest_index]
+
+        return lowest_distance < recognition_threshold, 1.0 - lowest_distance
