@@ -19,9 +19,9 @@ class Backend(OpenFaceEncoder):
                       options: Dict[str, OPTION_TYPE],
                       state: BaseStreamState) -> DETECTION_NODE_TYPE:
         detections = []
-        face_num = len(detection_node)
-        if face_num != 2:
-            return detections
+        #face_num = len(detection_node)
+        #if face_num != 2:
+        #    return detections
 
         # Crop with a 15% padding around the face to emulate how the model was
         # trained.

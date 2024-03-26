@@ -12,7 +12,7 @@ class Capsule(BaseCapsule):
     description = "✨ Recognize and compare identity card face and the other face. Works best close-up."
     version = 1
     input_type = NodeDescription(
-        size=NodeDescription.Size.SINGLE,
+        size=NodeDescription.Size.ALL,
         detections=["face"])
     output_type = NodeDescription(
         size=NodeDescription.Size.SINGLE,
