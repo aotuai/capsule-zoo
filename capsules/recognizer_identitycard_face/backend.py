@@ -36,7 +36,7 @@ class Backend(OpenFaceEncoder):
             prediction.append(self.send_to_batch(crop).result())
 
         # detection_node.encoding = prediction.vector
-        value, confident = self.vector_compare(prediction)
+        value, confident = self.vector_compare(prediction, options["recognition_threshold"])
 
         coords = detection_node[0].coords  # .extend(detection_node[1].coords)
         face_node = DetectionNode(
@@ -53,12 +53,22 @@ class Backend(OpenFaceEncoder):
         if len(predictions) != 2:
             return False, 0.0
 
-        identity_vec = np.array([predictions[0].encoding])
-        candidate_vec = np.array([predictions[1].encoding])
+        identity_vec = np.array([predictions[0].vector])
+        candidate_vec = np.array([predictions[1].vector])
 
+        '''
+        # cosine similarity [0~10], the greater the distance value, the more similar it is.
         distances = cosine_distance(candidate_vec, identity_vec)
+        print(distances)
         distances = abs(distances)
         lowest_index = np.argmin(distances)
-        lowest_distance = distances[lowest_index]
+        lowest_distance = distances[lowest_index][0]
+        print(f"cosine_distance: {lowest_distance}")
+        return lowest_distance < recognition_threshold, lowest_distance
+        '''
+        # Euclidean distance [0~2], the smaller the distance value, the more similar it is.
+        distance = np.linalg.norm( candidate_vec - identity_vec)
+        #print(f"norm: {distance}")
+        return distance < recognition_threshold, distance
 
-        return lowest_distance < recognition_threshold, 1.0 - lowest_distance
+
