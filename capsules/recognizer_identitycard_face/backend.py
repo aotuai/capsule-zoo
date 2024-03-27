@@ -47,7 +47,7 @@ class Backend(OpenFaceEncoder):
         face_node = DetectionNode(
             name="face_compare",
             coords=rect_to_coords(detection_node[0].bbox.rect),
-            extra_data={"confidence": confident},
+            extra_data={"face_compare_confidence": float(confident)},
             attributes={"face_compare": attr})
         detections.append(face_node)
 
