@@ -17,7 +17,8 @@ class Capsule(BaseCapsule):
     output_type = NodeDescription(
         size=NodeDescription.Size.SINGLE,
         detections=["face_compare"],
-        encoded=True)
+        extra_data = ["confidence"]
+        )
     backend_loader = lambda capsule_files, device: Backend(
         device=device,
         model_bytes=capsule_files["encoder_face_center_loss.pb"],

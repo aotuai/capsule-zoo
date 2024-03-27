@@ -8,6 +8,7 @@ from vcap import (
     DETECTION_NODE_TYPE,
     BaseStreamState,
     DetectionNode,
+    rect_to_coords,
     OPTION_TYPE)
 
 from vcap_utils import OpenFaceEncoder, cosine_distance
@@ -38,11 +39,16 @@ class Backend(OpenFaceEncoder):
         # detection_node.encoding = prediction.vector
         value, confident = self.vector_compare(prediction, options["recognition_threshold"])
 
-        coords = detection_node[0].coords  # .extend(detection_node[1].coords)
+        #coords = detection_node[0].coords  # .extend(detection_node[1].coords)
+        attr = "false"
+        if value:
+            attr = "true"
+
         face_node = DetectionNode(
             name="face_compare",
-            coords=coords,
-            extra_data={"face_compare": value, "confidence": confident})
+            coords=rect_to_coords(detection_node[0].bbox.rect),
+            extra_data={"confidence": confident},
+            attributes={"face_compare": attr})
         detections.append(face_node)
 
         return detections
