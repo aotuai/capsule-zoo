@@ -19,11 +19,6 @@ class Backend(OpenFaceEncoder):
                       detection_node: DETECTION_NODE_TYPE,
                       options: Dict[str, OPTION_TYPE],
                       state: BaseStreamState) -> DETECTION_NODE_TYPE:
-        detections = []
-        #face_num = len(detection_node)
-        #if face_num != 2:
-        #    return detections
-
         # Crop with a 15% padding around the face to emulate how the model was
         # trained.
         prediction = []
@@ -49,9 +44,8 @@ class Backend(OpenFaceEncoder):
             coords=rect_to_coords(detection_node[0].bbox.rect),
             extra_data={"face_compare_confidence": float(confident)},
             attributes={"face_compare": attr})
-        detections.append(face_node)
 
-        return detections
+        return [face_node]
 
     @staticmethod
     def vector_compare(predictions, recognition_threshold=0.5):
@@ -72,9 +66,11 @@ class Backend(OpenFaceEncoder):
         print(f"cosine_distance: {lowest_distance}")
         return lowest_distance < recognition_threshold, lowest_distance
         '''
-        # Euclidean distance [0~2], the smaller the distance value, the more similar it is.
+        # Euclidean distance [0~1.5], the smaller the distance value, the more similar it is.
         distance = np.linalg.norm( candidate_vec - identity_vec)
-        #print(f"norm: {distance}")
-        return distance < recognition_threshold, distance
+
+        # Normalized to a value of [0,1]
+        distance = 1 - distance / 1.5
+        return distance > recognition_threshold, distance
 
 
