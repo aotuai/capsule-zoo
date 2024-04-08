@@ -32,11 +32,13 @@ class Backend(OpenFaceEncoder):
             prediction.append(self.send_to_batch(crop).result())
 
         # detection_node.encoding = prediction.vector
-        value, confident = self.vector_compare(prediction, options["recognition_threshold"])
+        distance = self.vector_compare(prediction)
 
         #coords = detection_node[0].coords  # .extend(detection_node[1].coords)
+        # Normalized to a value of [0,1]
+        confident = 1 - distance / 1.5
         attr = "false"
-        if value:
+        if confident >= options["threshold"]:
             attr = "true"
 
         face_node = DetectionNode(
@@ -48,7 +50,7 @@ class Backend(OpenFaceEncoder):
         return [face_node]
 
     @staticmethod
-    def vector_compare(predictions, recognition_threshold=0.5):
+    def vector_compare(predictions):
         # compare prediction.vertor at here
         if len(predictions) != 2:
             return False, 0.0
@@ -70,7 +72,7 @@ class Backend(OpenFaceEncoder):
         distance = np.linalg.norm( candidate_vec - identity_vec)
 
         # Normalized to a value of [0,1]
-        distance = 1 - distance / 1.5
-        return distance > recognition_threshold, distance
+        # distance = 1 - distance / 1.5
+        return distance
 
 

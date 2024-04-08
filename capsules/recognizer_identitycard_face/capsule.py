@@ -24,8 +24,8 @@ class Capsule(BaseCapsule):
         model_bytes=capsule_files["encoder_face_center_loss.pb"],
         model_name="vggface2_center_loss")
     options = {
-        "recognition_threshold": FloatOption(
+        "threshold": FloatOption(
             default=0.34,
             min_val=0.0,
-            max_val=None)
+            max_val=1.0)
     }
