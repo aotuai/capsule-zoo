@@ -23,7 +23,7 @@ class Capsule(BaseCapsule):
     output_type = NodeDescription(
         size=NodeDescription.Size.ALL,
         detections=["text"],
-        extra_data=[detection_confidence, "ocr"])
+        extra_data=[detection_confidence, "ocr", "serial_no"])
     backend_loader = lambda capsule_files, device: Backend(
         device=device,
         det_bytes=capsule_files["models/-1_3_640_640_det.onnx"],
