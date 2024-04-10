@@ -110,7 +110,8 @@ class Backend(BaseBackend):
 
         for idx, (box, txt) in enumerate(zip(boxes, txts)):
             extra_data = {"ocr": txt[0],
-                          detection_confidence: float(txt[1])}
+                          detection_confidence: float(txt[1]),
+                          "serial_no": idx}
             if is_cell:
                 offset_x, offset_y = offset
             else:
