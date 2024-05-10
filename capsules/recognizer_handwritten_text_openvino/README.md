@@ -1,6 +1,6 @@
 # About the Capsule
 ## Usage
-This capsule is for detecting and reading handwritten simplified chinese text in video. 
+This capsule is used to read simplified Chinese text written in the set area of the video.
 
 ## Model
 This capsule backend uses openvino ir modle for recognize the text. 
