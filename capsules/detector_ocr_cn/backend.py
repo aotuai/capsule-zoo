@@ -4,6 +4,7 @@ import numpy as np
 import tempfile
 from pathlib import Path
 import time
+import cv2
 
 from vcap import (
     Resize,
@@ -54,7 +55,10 @@ class Backend(BaseBackend):
         try:
             start_time = time.time()
             is_cell = options["cell"]
-
+            to_gray = options["to_gray"]
+            if to_gray:
+                frame1 = cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY)
+                frame = cv2.cvtColor(frame1, cv2.COLOR_GRAY2BGR)
             cell_x, cell_y = 0, 0
             if is_cell:
                 cell_x = options["cell_x"]
