@@ -4,12 +4,16 @@ import cv2
 import numpy as np
 import os
 
-def bold_strokes(gray_image):
-    ret, binary = cv2.threshold(gray_image, 210, 255, cv2.THRESH_BINARY)
+def bold_strokes(gray_image, black_groud, bold):
+    if black_groud:
+        ret, binary = cv2.threshold(gray_image, 40, 255, cv2.THRESH_BINARY_INV)
+    else:
+        ret, binary = cv2.threshold(gray_image, 210, 255, cv2.THRESH_BINARY)
 
-    kernel = np.ones((3, 3), dtype=np.uint8)
-    img = cv2.erode(binary, kernel, iterations=1)  # 1:迭代次数，也就是执行几次膨胀操作
-    return img
+    if bold:
+        kernel = np.ones((3, 3), dtype=np.uint8)
+        binary = cv2.erode(binary, kernel, iterations=1)  # 1:迭代次数，也就是执行几次膨胀操作
+    return binary
 
 def cv_show(img):
     cv2.imshow('', img)
@@ -72,12 +76,16 @@ def getVProjection(image, image_pad):
     return first_x, end_x
 
 
-def get_handwriten_text_area_image(gray_image, image_pad):
+def get_handwriten_text_area_image(gray_image, image_pad, black_groud):
     # 图像灰度化
     #img = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     # 将图片二值化 & bold strokes
     #img = bold_strokes(img)
-    ret, binary = cv2.threshold(gray_image, 210, 255, cv2.THRESH_BINARY)
+    # ret, binary = cv2.threshold(gray_image, 210, 255, cv2.THRESH_BINARY)
+    if black_groud:
+        ret, binary = cv2.threshold(gray_image, 40, 255, cv2.THRESH_BINARY_INV)
+    else:
+        ret, binary = cv2.threshold(gray_image, 210, 255, cv2.THRESH_BINARY)
     #cv_show(binary)
 
     (h, w) = binary.shape

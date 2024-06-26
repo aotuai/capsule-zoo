@@ -76,8 +76,11 @@ class Backend(OpenVINOModel):
             -> Tuple[OV_INPUT_TYPE, List]:
         # remove watermark
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+
+        black_groud = check_black_backgroud(gray)
+
         #logging.warning(f"gray h={gray.shape[0]} w={gray.shape[1]} pad={options['strokes_pad']}")
-        src, box = get_handwriten_text_area_image(gray, options["strokes_pad"])
+        src, box = get_handwriten_text_area_image(gray, options["strokes_pad"], black_groud)
         #logging.warning(f"{box}")
         input_blob_name = frame_input_name or self.input_blob_names[0]
         _, _, input_height, input_width = self.net.input_info[input_blob_name].input_data.shape
@@ -89,8 +92,8 @@ class Backend(OpenVINOModel):
         tw = int(input_height * ratio)
         rsz = cv2.resize(src, (tw, input_height), interpolation=cv2.INTER_AREA).astype(np.float32)
 
-        if options["to_bold_strokes"]:
-            rsz = bold_strokes(rsz)
+        #if options["to_bold_strokes"]:
+        rsz = bold_strokes(rsz, black_groud, options["to_bold_strokes"])
 
         # [h,w] -> [c,h,w]
         img = rsz[None, :, :]
@@ -117,3 +120,17 @@ def get_characters(char_file):
     '''Get characters'''
     with open(char_file, 'r', encoding='utf-8') as f:
         return ''.join(line.strip('\n') for line in f)
+
+def check_black_backgroud(gray_image):
+    # 二值化图像
+    _, binary_image = cv2.threshold(gray_image, 128, 255, cv2.THRESH_BINARY)
+
+    # 统计黑白像素数量
+    black_pixels = np.sum(gray_image == 0)
+    white_pixels = np.sum(gray_image == 255)
+
+    # 判断背景颜色
+    if black_pixels > white_pixels:
+        return True  # 黑底
+    else:
+        return False  # 白底
