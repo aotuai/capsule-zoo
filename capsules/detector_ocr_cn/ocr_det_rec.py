@@ -406,20 +406,20 @@ class OcrDetRec(object):
     ### 定义图片前处理过程，和检测结果后处理过程
     def get_process(self):
         det_db_thresh = 0.3
-        det_db_box_thresh = 0.5
-        max_candidates = 2000
-        unclip_ratio = 1.6
-        use_dilation = True
+        det_db_box_thresh = 0.6  #0.5
+        max_candidates = 1000    #2000
+        unclip_ratio = 1.5       #1.6
+        use_dilation = False     #True
 
         pre_process_list = [{
             'DetResizeForTest': {
-                'limit_side_len': 2500,
+                'limit_side_len': 960,           # 2500,
                 'limit_type': 'max'
             }
         }, {
             'NormalizeImage': {
-                'std': [0.5, 0.5, 0.5],
-                'mean': [0.5, 0.5, 0.5],
+                'std':  [0.229, 0.224, 0.225],   #[0.5, 0.5, 0.5],
+                'mean': [0.485, 0.456, 0.406],   #[0.5, 0.5, 0.5],
                 'scale': '1./255.',
                 'order': 'hwc'
             }
@@ -457,7 +457,9 @@ class OcrDetRec(object):
 
     ### 图像输入预处理
     def resize_norm_img(self, img, max_wh_ratio):
-        imgC, imgH, imgW = [int(v) for v in "3, 32, 100".split(",")]
+        #imgC, imgH, imgW = [int(v) for v in "3, 48, 320".split(",")]
+        #imgC, imgH, imgW = [int(v) for v in "3, 32, 320".split(",")]
+        imgC, imgH, imgW = [int(v) for v in "3, 41, 100".split(",")]
         assert imgC == img.shape[2]
         imgW = int((32 * max_wh_ratio))
         h, w = img.shape[:2]

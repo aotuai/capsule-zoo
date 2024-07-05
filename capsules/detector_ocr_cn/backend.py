@@ -1,26 +1,25 @@
-from typing import Dict, List, Any
-from time import time
-
+import logging
+from typing import Dict, Tuple
 import numpy as np
 import tempfile
 from pathlib import Path
+import time
 
 from vcap import (
     Resize,
     BaseBackend,
     DetectionNode,
     rect_to_coords,
-    BaseStreamState,
     DETECTION_NODE_TYPE,
-    OPTION_TYPE)
+    OPTION_TYPE, BoundingBox)
 
 from .ocr_det_rec import OcrDetRec, get_onet_sessions, get_character_dict
+from .ocr_state import StreamState
 
 detection_confidence = "confidence"
 
 
 class Backend(BaseBackend):
-
     def __init__(self, det_bytes, rec_bytes, dict_bytes,
                  device: str = None):
         super().__init__()
@@ -49,67 +48,82 @@ class Backend(BaseBackend):
     def process_frame(self, frame: np.ndarray,
                       detection_nodes: DETECTION_NODE_TYPE,
                       options: Dict[str, OPTION_TYPE],
-                      state: BaseStreamState) -> DETECTION_NODE_TYPE:
-
-        screen_enable = options["screen"]
-        cell_enable   = options["cell"]
-        object_enable = options["object"]
-        noise_enable  = options["noise"]
-
-        textzones = []
-        if  (screen_enable is True and detection_nodes.class_name == 'screen') or \
-            (cell_enable   is True and detection_nodes.class_name in ['home_cell', 'roaming_cell']) or \
-            (object_enable is True and detection_nodes.class_name in ['home_cell object', 'roaming_cell object']) or \
-            (noise_enable  is True and detection_nodes.class_name in ['home_cell object noise', 'roaming_cell object noise']):
-
-            textzones.append(detection_nodes)
-
+                      state: StreamState) -> DETECTION_NODE_TYPE:
         detections = []
-        for textzone in textzones:
-            crop = Resize(frame).crop_bbox(textzone.bbox).frame
 
-            time1 = time()
-    
+        try:
+            start_time = time.time()
+            is_cell = options["cell"]
+
+            cell_x, cell_y = 0, 0
+            if is_cell:
+                cell_x = options["cell_x"]
+                cell_y = options["cell_y"]
+                cell_width = options["cell_width"]
+                cell_height = options["cell_height"]
+                cell_bbox = BoundingBox(cell_x, cell_y, cell_x + cell_width, cell_y + cell_height)
+                frame = Resize(frame).crop_bbox(cell_bbox).frame
+
+                # if state.is_similar_frame(frame):
+                #     state.update_last_frame(frame)
+                #     detections = []
+                #     detections.extend(state.get_last_detections())
+                #     return detections
+
             # Setup OCR-检测-识别 System
             ocr_sys = OcrDetRec(self.onet_det_session, self.onet_rec_session, self.dict_character)
-    
+
             # OCR-检测-识别
-            ocr_sys.ocr_det_rec_img(crop)
-    
+            ocr_sys.ocr_det_rec_img(frame)
+
             # 得到检测框
             dt_boxes = ocr_sys.get_boxes()
-    
+
             # 识别 results: 单纯的识别结果，results_info: 识别结果+置信度
             results, results_info = ocr_sys.recognition_img(dt_boxes)
-    
-            time2 = time()
-    
-            detections += self.create_ocr_text_detections(textzone.bbox, dt_boxes, results)
 
-        return [d for d in detections if d is not None]
+            raw_detections = self.create_ocr_text_detections(dt_boxes, results, is_cell, (cell_x, cell_y))
+            detections = [d for d in raw_detections if d is not None]
 
-    def create_ocr_text_detections(self, textzone_box, boxes, txts) -> DetectionNode:
+            end_time = time.time()
+            end_time = end_time - start_time
 
+            if end_time <= 3:
+                time.sleep(3)
+            elif end_time <= 6:
+                time.sleep(round(9-end_time))
+            elif end_time <= 9:
+                time.sleep(round(12-end_time))
+
+            if is_cell:
+                state.update_last_frame(frame, detections)
+        except Exception as e:
+            logging.warning(f"Failed to process ocr frame, {e}")
+
+        return detections
+
+    def create_ocr_text_detections(self, boxes, txts, is_cell, offset: Tuple[int, int]):
         detections = []
 
         if txts is None or len(txts) != len(boxes):
             txts = [None] * len(boxes)
 
-        x_offset = textzone_box.x1
-        y_offset = textzone_box.y1
-
         for idx, (box, txt) in enumerate(zip(boxes, txts)):
-
             extra_data = {"ocr": txt[0],
-                          detection_confidence: float(txt[1])}
+                          detection_confidence: float(txt[1]),
+                          "serial_no": idx}
+            if is_cell:
+                offset_x, offset_y = offset
+            else:
+                offset_x, offset_y = 0, 0
+            x1, y1 = int(box[0][0]) + offset_x, int(box[0][1]) + offset_y
+            x2, y2 = int(box[2][0]) + offset_x, int(box[2][1]) + offset_y
 
-            box_rect = [int(box[0][0]) + x_offset, int(box[0][1]) + y_offset,
-                        int(box[2][0]) + x_offset, int(box[2][1]) + y_offset]
-            detection = DetectionNode( name='text',
-                    coords=rect_to_coords(box_rect),
-                    extra_data=extra_data)
+            box_rect = [x1, y1, x2, y2]
+            detection = DetectionNode(name='text',
+                                      coords=rect_to_coords(box_rect),
+                                      extra_data=extra_data)
 
             detections.append(detection)
 
         return detections
-
