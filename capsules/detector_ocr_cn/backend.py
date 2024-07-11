@@ -92,12 +92,14 @@ class Backend(BaseBackend):
             end_time = time.time()
             end_time = end_time - start_time
 
+            '''
             if end_time <= 3:
                 time.sleep(3)
             elif end_time <= 6:
                 time.sleep(round(9-end_time))
             elif end_time <= 9:
                 time.sleep(round(12-end_time))
+            '''
 
             if is_cell:
                 state.update_last_frame(frame, detections)
