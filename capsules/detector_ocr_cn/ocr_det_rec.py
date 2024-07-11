@@ -457,11 +457,11 @@ class OcrDetRec(object):
 
     ### 图像输入预处理
     def resize_norm_img(self, img, max_wh_ratio):
-        #imgC, imgH, imgW = [int(v) for v in "3, 48, 320".split(",")]
-        #imgC, imgH, imgW = [int(v) for v in "3, 32, 320".split(",")]
-        imgC, imgH, imgW = [int(v) for v in "3, 41, 100".split(",")]
+        imgC, imgH, imgW = [int(v) for v in "3, 48, 320".split(",")]
+
         assert imgC == img.shape[2]
-        imgW = int((32 * max_wh_ratio))
+        # imgW = int((32 * max_wh_ratio))
+        imgW = int((imgH * max_wh_ratio))
         h, w = img.shape[:2]
         ratio = w / float(h)
         if math.ceil(imgH * ratio) > imgW:
