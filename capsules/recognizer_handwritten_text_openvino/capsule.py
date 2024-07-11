@@ -12,7 +12,7 @@ detection_confidence = "confidence"
 
 class Capsule(BaseCapsule):
     name = "recognizer_handwritten_text_openvino"
-    description = "✨ v1.0 OpenVINO handwritten simplified chinese text (only one line) recognition."
+    description = "✨ v1.1 OpenVINO handwritten simplified chinese text (only one line) recognition."
     version = 1
     device_mapper = DeviceMapper.map_to_single_cpu()
     input_type = NodeDescription(size=NodeDescription.Size.NONE)

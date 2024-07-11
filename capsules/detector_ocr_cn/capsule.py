@@ -15,7 +15,7 @@ detection_confidence = "confidence"
 
 class Capsule(BaseCapsule):
     name = "detector_ocr_cn"
-    description = "✨ v1.2.1 OCR text detector and recognition: support over 6000 Chinese charactors."
+    description = "✨ v1.2.3 OCR text detector and recognition: support over 6000 Chinese charactors."
     version = 1
     stream_state = StreamState
     device_mapper = DeviceMapper.map_to_single_cpu()
@@ -26,8 +26,8 @@ class Capsule(BaseCapsule):
         extra_data=[detection_confidence, "ocr", "serial_no"])
     backend_loader = lambda capsule_files, device: Backend(
         device=device,
-        det_bytes=capsule_files["models/-1_3_640_640_det.onnx"],
-        rec_bytes=capsule_files["models/-1_3_640_640_rec.onnx"],
+        det_bytes=capsule_files["models/det_handwrite_finetune_20240710.onnx"],
+        rec_bytes=capsule_files["models/rec_handwrite_finetune_20240710.onnx"],
         dict_bytes=capsule_files["ppocr_keys_v1.txt"]
     )
     options = {
@@ -45,4 +45,5 @@ class Capsule(BaseCapsule):
         "cell_height": IntOption(
             default=720, min_val=10, max_val=None,
             description="The height of the cell."),
+        "to_gray": BoolOption(default=False),
     }
