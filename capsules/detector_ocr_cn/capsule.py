@@ -26,8 +26,8 @@ class Capsule(BaseCapsule):
         extra_data=[detection_confidence, "ocr", "serial_no"])
     backend_loader = lambda capsule_files, device: Backend(
         device=device,
-        det_bytes=capsule_files["models/det_handwrite_finetune_20240710.onnx"],
-        rec_bytes=capsule_files["models/rec_handwrite_finetune_20240710.onnx"],
+        det_bytes=capsule_files["models/-1_3_640_640_det.onnx"],
+        rec_bytes=capsule_files["models/-1_3_640_640_rec.onnx"],
         dict_bytes=capsule_files["ppocr_keys_v1.txt"]
     )
     options = {
