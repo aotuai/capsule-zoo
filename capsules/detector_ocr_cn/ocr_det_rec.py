@@ -322,6 +322,7 @@ class OcrDetRec(object):
         self.onet_det_session = onet_det_session
         self.onet_rec_session = onet_rec_session
         self.postprocess_op = ProcessPred(dict_character)
+        self.rec_image_shape = [int(v) for v in "3, 48, 320".split(",")]
 
     def ocr_det_rec_img(self, image):
         self.img = image
@@ -457,8 +458,8 @@ class OcrDetRec(object):
 
     ### 图像输入预处理
     def resize_norm_img(self, img, max_wh_ratio):
-        imgC, imgH, imgW = [int(v) for v in "3, 48, 320".split(",")]
-
+        #imgC, imgH, imgW = [int(v) for v in "3, 48, 320".split(",")]
+        imgC, imgH, imgW = self.rec_image_shape
         assert imgC == img.shape[2]
         # imgW = int((32 * max_wh_ratio))
         imgW = int((imgH * max_wh_ratio))
@@ -521,8 +522,12 @@ class OcrDetRec(object):
 
     ### 单张图片推理
     def get_img_res(self, onnx_model, img, process_op):
+        imgC, imgH, imgW = self.rec_image_shape
+        max_wh_ratio = imgW / imgH
         h, w = img.shape[:2]
-        img = self.resize_norm_img(img, w * 1.0 / h)
+        wh_ratio = w * 1.0 / h
+        max_wh_ratio = max(max_wh_ratio, wh_ratio)
+        img = self.resize_norm_img(img, max_wh_ratio)
         img = img[np.newaxis, :]
         inputs = {onnx_model.get_inputs()[0].name: img}
         outs = onnx_model.run(None, inputs)
