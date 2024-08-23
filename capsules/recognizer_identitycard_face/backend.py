@@ -53,7 +53,7 @@ class Backend(OpenFaceEncoder):
     def vector_compare(predictions):
         # compare prediction.vertor at here
         if len(predictions) != 2:
-            return False, 0.0
+            return 1.5
 
         identity_vec = np.array([predictions[0].vector])
         candidate_vec = np.array([predictions[1].vector])
