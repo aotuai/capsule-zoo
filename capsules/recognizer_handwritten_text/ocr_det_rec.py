@@ -406,7 +406,7 @@ class OcrDetRec(object):
 
     ### 定义图片前处理过程，和检测结果后处理过程
     def get_process(self):
-        det_db_thresh = 0.3
+        det_db_thresh = 0.1      #0.3
         det_db_box_thresh = 0.6  #0.5
         max_candidates = 1000    #2000
         unclip_ratio = 1.5       #1.6
