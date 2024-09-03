@@ -101,9 +101,10 @@ class DetResizeForTest(object):
         resize_h = int(h * ratio)
         resize_w = int(w * ratio)
 
-
-        resize_h = int(round(resize_h / 32) * 32)
-        resize_w = int(round(resize_w / 32) * 32)
+        resize_h = max(int(round(resize_h / 32) * 32), 32)
+        resize_w = max(int(round(resize_w / 32) * 32), 32)
+        #resize_h = int(round(resize_h / 32) * 32)
+        #resize_w = int(round(resize_w / 32) * 32)
 
         try:
             if int(resize_w) <= 0 or int(resize_h) <= 0:
@@ -361,6 +362,17 @@ class OcrDetRec(object):
 
     ### 检测框的后处理
     def order_points_clockwise(self, pts):
+        rect = np.zeros((4, 2), dtype="float32")
+        s = pts.sum(axis=1)
+        rect[0] = pts[np.argmin(s)]
+        rect[2] = pts[np.argmax(s)]
+        tmp = np.delete(pts, (np.argmin(s), np.argmax(s)), axis=0)
+        diff = np.diff(np.array(tmp), axis=1)
+        rect[1] = tmp[np.argmin(diff)]
+        rect[3] = tmp[np.argmax(diff)]
+        return rect
+    '''
+    def order_points_clockwise(self, pts):
         """
         reference from: https://github.com/jrosebr1/imutils/blob/master/imutils/perspective.py
         # sort the points based on their x-coordinates
@@ -383,6 +395,7 @@ class OcrDetRec(object):
 
         rect = np.array([tl, tr, br, bl], dtype="float32")
         return rect
+    '''
 
     def clip_det_res(self, points, img_height, img_width):
         for pno in range(points.shape[0]):
