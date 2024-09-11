@@ -15,7 +15,7 @@ detection_confidence = "confidence"
 
 class Capsule(BaseCapsule):
     name = "recognizer_handwritten_text"
-    description = "✨ v1.1.4 OCR handwritten text detector and recognition."
+    description = "✨ v1.1.5 OCR handwritten text detector and recognition."
     version = 1
     stream_state = StreamState
     device_mapper = DeviceMapper.map_to_single_cpu()

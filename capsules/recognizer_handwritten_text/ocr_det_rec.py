@@ -5,6 +5,7 @@ import onnxruntime
 import numpy as np
 import pyclipper
 from shapely.geometry import Polygon
+from .bold_strokes import get_hw_box
 
 
 # PalldeOCR 检测模块 需要用到的图片预处理类
@@ -288,7 +289,10 @@ class ProcessPred(object):
                 else:
                     conf_list.append(1)
             text = ''.join(char_list)
-            result_list.append((text, np.mean(conf_list)))
+            if len(conf_list)==0:
+                result_list.append((text, 0))
+            else:
+                result_list.append((text, np.mean(conf_list)))
         return result_list
 
     def __call__(self, preds, label=None):
@@ -507,6 +511,8 @@ class OcrDetRec(object):
         dt_boxes_part = post_res_part[0]['points']
         dt_boxes_part = self.filter_tag_det_res(dt_boxes_part, img_ori.shape)
         dt_boxes_part = self.sorted_boxes(dt_boxes_part)
+        if len(dt_boxes_part) == 0:
+            dt_boxes_part = get_hw_box(img_ori)
         return dt_boxes_part
 
     ### 根据bounding box得到单元格图片

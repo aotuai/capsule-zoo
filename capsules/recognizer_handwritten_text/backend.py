@@ -105,10 +105,14 @@ class Backend(BaseBackend):
         if txts is None or len(txts) != len(boxes):
             txts = [None] * len(boxes)
 
+        idx1 = 0
         for idx, (box, txt) in enumerate(zip(boxes, txts)):
+            if txt[0].isdigit() or txt[0]=='':
+                continue
             extra_data = {"ocr": txt[0],
                           detection_confidence: float(txt[1]),
-                          "serial_no": idx}
+                          "serial_no": idx1}
+            idx1 += 1
             if is_cell:
                 offset_x, offset_y = offset
             else:
