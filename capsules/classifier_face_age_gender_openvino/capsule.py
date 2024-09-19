@@ -6,7 +6,7 @@ from . import config
 
 class Capsule(BaseCapsule):
     name = "classifier_face_age_gender_openvino"
-    description = "OpenVINO face age/gender classifier."
+    description = "v1.1 OpenVINO face age/gender classifier."
     version = 1
     device_mapper = DeviceMapper.map_to_openvino_devices()
     input_type = NodeDescription(
