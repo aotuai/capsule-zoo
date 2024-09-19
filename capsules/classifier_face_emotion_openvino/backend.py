@@ -24,9 +24,16 @@ class Backend(BaseOpenVINOBackend):
         input_dict, _ = self.prepare_inputs(crop)
         prediction = self.send_to_batch(input_dict).result()
 
-        emotion_id = int(prediction["prob_emotion"].argmax())
+        prob_key = next(key for key in prediction.keys() if 'prob_emotion' in key.names)
+        prob_data = prediction[prob_key]
+        if isinstance(prob_data, np.ndarray):
+            emotion_id = prob_data.flatten().argmax()
+            emotion_score = float(prob_data.flatten()[emotion_id])
+        else:
+            emotion_id = 0 if prob_data[0] > prob_data[1] else 1
+            emotion_score = float(prob_data[emotion_id])
+
         emotion = EMOTION_TYPES[emotion_id]
-        emotion_score = float(prediction["prob_emotion"].flatten()[emotion_id])
 
         detection_node.attributes["emotion"] = emotion
         detection_node.extra_data["emotion_confidence"] = emotion_score

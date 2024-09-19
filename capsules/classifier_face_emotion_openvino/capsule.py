@@ -4,7 +4,7 @@ from .backend import Backend, EMOTION_TYPES
 
 class Capsule(BaseCapsule):
     name = "classifier_face_emotion_openvino"
-    description = "OpenVINO face emotion classifier."
+    description = "v1.1 OpenVINO face emotion classifier."
     version = 1
     device_mapper = DeviceMapper.map_to_openvino_devices()
     input_type = NodeDescription(
