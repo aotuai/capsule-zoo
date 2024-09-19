@@ -5,7 +5,7 @@ from .backend import ATTRIBUTES, Backend, options
 
 class Capsule(BaseCapsule):
     name = "classifier_person_attributes_openvino"
-    description = "OpenVINO powered person classifier, " \
+    description = "v1.1 OpenVINO powered person classifier, " \
                   "for general person appearance attributes."
     version = 1
     device_mapper = DeviceMapper.map_to_openvino_devices()

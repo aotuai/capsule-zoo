@@ -46,7 +46,12 @@ class Backend(BaseOpenVINOBackend):
         input_dict, _ = self.prepare_inputs(crop)
         prediction = self.send_to_batch(input_dict).result()
 
-        prediction = prediction['453'].flatten()
+        prob_key = next(key for key in prediction.keys() if '453' in key.names)
+        prob_data = prediction[prob_key]
+        if isinstance(prob_data, np.ndarray):
+            prediction = prob_data.flatten()
+        else:
+            prediction = prob_data
 
         # Iterate over predictions and add attributes accordingly
         for attribute_key, confidence in zip(ATTRIBUTES.keys(), prediction):
