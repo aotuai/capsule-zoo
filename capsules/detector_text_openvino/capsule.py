@@ -10,7 +10,7 @@ from .backend import Backend, OpenVINOModel
 
 class Capsule(BaseCapsule):
     name = "detector_text_openvino"
-    description = "✨ OpenVINO text detector and reader."
+    description = "✨ v1.1 OpenVINO text detector and reader."
     version = 1
     device_mapper = DeviceMapper.map_to_openvino_devices()
     input_type = NodeDescription(size=NodeDescription.Size.NONE)
