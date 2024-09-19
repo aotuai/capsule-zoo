@@ -25,7 +25,13 @@ class Backend(BaseOpenVINOBackend):
         prediction = self.send_to_batch(input_dict).result()
 
         # Convert prediction to a label
-        probability = prediction["fc5"].flatten()[0]
+        prob_key = next(key for key in prediction.keys() if 'fc5' in key.names)
+        prob_data = prediction[prob_key]
+        if isinstance(prob_data, np.ndarray):
+            probability = float(prob_data.flatten()[0])
+        else:
+            probability = float(prob_data[0])
+
         threshold = options["threshold"]
         label = self.LABELS[int(probability > threshold)]
 
