@@ -22,8 +22,20 @@ class Backend(BaseOpenVINOBackend):
         input_dict, _ = self.prepare_inputs(crop)
         prediction = self.send_to_batch(input_dict).result()
 
-        max_color = config.colors[prediction["color"].argmax()]
-        max_type = config.vehicle_classifications[prediction["type"].argmax()]
+        vcolor_key = next(key for key in prediction.keys() if 'color' in key.names)
+        vtype_key = next(key for key in prediction.keys() if 'type' in key.names)
+
+        vcolor_data = prediction[vcolor_key]
+        if isinstance(vcolor_data, np.ndarray):
+            max_color = config.colors[vcolor_data.flatten().argmax()]
+        else:
+            max_color = config.colors[vcolor_data.argmax()]
+
+        vtype_data = prediction[vtype_key]
+        if isinstance(vtype_data, np.ndarray):
+            max_type = config.vehicle_classifications[vtype_data.flatten().argmax()]
+        else:
+            max_type = config.vehicle_classifications[vtype_data.argmax()]
 
         detection_node.attributes["color"] = max_color
         detection_node.attributes["vehicle_type"] = max_type

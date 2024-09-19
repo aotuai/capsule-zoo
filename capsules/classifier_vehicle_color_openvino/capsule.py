@@ -5,7 +5,7 @@ from . import config
 
 class Capsule(BaseCapsule):
     name = "classifier_vehicle_color_openvino"
-    description = "OpenVINO vehicle color classifier."
+    description = "v1.1 OpenVINO vehicle color classifier."
     version = 1
     device_mapper = DeviceMapper.map_to_openvino_devices()
     input_type = NodeDescription(
