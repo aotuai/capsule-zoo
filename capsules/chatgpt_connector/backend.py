@@ -58,7 +58,7 @@ class Backend(BaseBackend):
         height, width = frame.shape[:2]
         _, buffer = cv2.imencode('.jpg', frame)
         jpg_as_base64 = base64.b64encode(buffer).decode('utf-8')
-        extra_data = self.chatgpt(jpg_as_base64, options)
+        extra_data = self.chatgpt(jpg_as_base64, options)['choices'][0]['message']['content']
         detections.append(DetectionNode( name="chatgpt", coords=[[0,0], [width,0], [width,height], [0,height]], extra_data={"chatgpt": extra_data}))
         return detections
     
