@@ -30,6 +30,9 @@ class OpenVINOModel(BaseOpenVINOBackend):
         raise NotImplemented('This backend is not for processing frames. '
                              'It is only used for storing a model.')
 
+    def close(self):
+        super().close()
+
 
 class Backend(BaseBackend):
     label_map: Dict[int, str] = {1: "text"}
@@ -41,6 +44,12 @@ class Backend(BaseBackend):
         self.detector = detector
         self.recognizer_encoder = recognizer_encoder
         self.recognizer_decoder = recognizer_decoder
+
+    def close(self):
+        self.detector.close()
+        self.recognizer_encoder.close()
+        self.recognizer_decoder.close()
+        super().close()
 
     @property
     def workload(self) -> float:
