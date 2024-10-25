@@ -8,6 +8,13 @@ from vcap import (
     OPTION_TYPE,
     BaseStreamState)
 from vcap_utils import BaseOpenVINOBackend
+from vcap import __version__ as vcap_version
+def openvino2024_compatible():
+    from packaging import version
+    from vcap import __version__ as vcap_version
+    openvino2024_compatible_vcap_version = '0.3.8'
+    return version.parse(vcap_version) >= version.parse(openvino2024_compatible_vcap_version)
+__openvino2024__ = openvino2024_compatible()
 
 
 class Backend(BaseOpenVINOBackend):
@@ -25,12 +32,15 @@ class Backend(BaseOpenVINOBackend):
         prediction = self.send_to_batch(input_dict).result()
 
         # Convert prediction to a label
-        prob_key = next(key for key in prediction.keys() if 'fc5' in key.names)
-        prob_data = prediction[prob_key]
-        if isinstance(prob_data, np.ndarray):
-            probability = float(prob_data.flatten()[0])
+        if __openvino2024__:
+            prob_key = next(key for key in prediction.keys() if 'fc5' in key.names)
+            prob_data = prediction[prob_key]
+            if isinstance(prob_data, np.ndarray):
+                probability = float(prob_data.flatten()[0])
+            else:
+                probability = float(prob_data[0])
         else:
-            probability = float(prob_data[0])
+            probability = prediction["fc5"].flatten()[0]
 
         threshold = options["threshold"]
         label = self.LABELS[int(probability > threshold)]
