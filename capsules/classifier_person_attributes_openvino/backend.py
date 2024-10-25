@@ -9,6 +9,13 @@ from vcap import (
     OPTION_TYPE,
     BaseStreamState, FloatOption)
 from vcap_utils import BaseOpenVINOBackend
+from vcap import __version__ as vcap_version
+def openvino2024_compatible():
+    from packaging import version
+    from vcap import __version__ as vcap_version
+    openvino2024_compatible_vcap_version = '0.3.8'
+    return version.parse(vcap_version) >= version.parse(openvino2024_compatible_vcap_version)
+__openvino2024__ = openvino2024_compatible()
 
 ATTRIBUTES = {
     'gender': ['masculine', 'feminine', 'unknown'],
@@ -46,12 +53,15 @@ class Backend(BaseOpenVINOBackend):
         input_dict, _ = self.prepare_inputs(crop)
         prediction = self.send_to_batch(input_dict).result()
 
-        prob_key = next(key for key in prediction.keys() if '453' in key.names)
-        prob_data = prediction[prob_key]
-        if isinstance(prob_data, np.ndarray):
-            prediction = prob_data.flatten()
+        if __openvino2024__:
+            prob_key = next(key for key in prediction.keys() if '453' in key.names)
+            prob_data = prediction[prob_key]
+            if isinstance(prob_data, np.ndarray):
+                prediction = prob_data.flatten()
+            else:
+                prediction = prob_data
         else:
-            prediction = prob_data
+            prediction = prediction['453'].flatten()
 
         # Iterate over predictions and add attributes accordingly
         for attribute_key, confidence in zip(ATTRIBUTES.keys(), prediction):
