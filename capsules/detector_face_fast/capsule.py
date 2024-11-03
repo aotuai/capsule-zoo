@@ -13,7 +13,7 @@ from vcap import (
     OPTION_TYPE)
 from vcap_utils import TFObjectDetector
 
-detection_confidence = "detection_confidence"
+detection_confidence = "confidence"
 
 
 class Backend(TFObjectDetector):
