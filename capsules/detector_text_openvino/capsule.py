@@ -17,7 +17,7 @@ class Capsule(BaseCapsule):
     output_type = NodeDescription(
         size=NodeDescription.Size.ALL,
         detections=["text"],
-        extra_data=["detection_confidence", "text"])
+        extra_data=["confidence", "text"])
 
     if __openvino2024__:
         backend_loader = lambda capsule_files, device: Backend(

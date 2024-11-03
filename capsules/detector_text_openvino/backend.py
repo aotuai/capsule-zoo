@@ -170,7 +170,7 @@ class Backend(BaseBackend):
                     name="text",
                     coords=rect_to_coords(rect.tolist()),
                     extra_data={
-                        "detection_confidence": float(score),
+                        "confidence": float(score),
                         "confidence": float(text_confidence),
                         "text": text
                     },
@@ -236,7 +236,7 @@ class Backend(BaseBackend):
                     name="text",
                     coords=rect_to_coords(rect.tolist()),
                     extra_data={
-                        "detection_confidence": float(score),
+                        "confidence": float(score),
                         "text": text
                     },
                 ))
