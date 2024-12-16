@@ -9,7 +9,7 @@ from .backend import Backend
 
 class Capsule(BaseCapsule):
     name = "recognizer_identitycard_face"
-    description = "✨ Recognize and compare identity card face and the other face. Works best close-up."
+    description = "✨ v1.1 Recognize and compare identity card face and the other face. Works best close-up."
     version = 1
     input_type = NodeDescription(
         size=NodeDescription.Size.ALL,

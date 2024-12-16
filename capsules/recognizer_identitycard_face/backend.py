@@ -1,3 +1,4 @@
+import logging
 from typing import Dict
 
 import numpy as np
@@ -21,6 +22,8 @@ class Backend(OpenFaceEncoder):
                       state: BaseStreamState) -> DETECTION_NODE_TYPE:
         # Crop with a 15% padding around the face to emulate how the model was
         # trained.
+        if len(detection_node) == 0:
+            return []
         prediction = []
         for det in detection_node:
             # crop = Resize(frame).crop_bbox(det.bbox).frame
@@ -31,15 +34,21 @@ class Backend(OpenFaceEncoder):
 
             prediction.append(self.send_to_batch(crop).result())
 
-        # detection_node.encoding = prediction.vector
-        distance = self.vector_compare(prediction)
+        try:
+            # detection_node.encoding = prediction.vector
+            distance = self.vector_compare(prediction)
 
-        #coords = detection_node[0].coords  # .extend(detection_node[1].coords)
-        # Normalized to a value of [0,1]
-        confident = 1 - distance / 1.5
-        attr = "false"
-        if confident >= options["threshold"]:
-            attr = "true"
+            #coords = detection_node[0].coords  # .extend(detection_node[1].coords)
+            # Normalized to a value of [0,1]
+            confident = 1 - distance / 1.5
+            attr = "false"
+            if confident >= options["threshold"]:
+                attr = "true"
+
+        except Exception as e:
+            logging.error(f"{e}")
+            attr = "false"
+            confident = 0
 
         face_node = DetectionNode(
             name="face_compare",
