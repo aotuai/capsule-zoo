@@ -9,9 +9,10 @@ import os
 class Backend(BaseBackend):
 
     def chatgpt(self, jpg_as_base64: str, options: Dict[str, OPTION_TYPE],) -> str:
-        api_key = os.environ.get('CHATGPT_APIKEY','')
-        http_proxy = os.environ.get('CHATGPT_HTTPPROXY','')
-        prompt = os.environ.get('CHATGPT_PROMPT','')
+        api_key = options["api_key"]
+        http_proxy = options["http_proxy"]
+        prompt = options["prompt"]
+        model = options["model"]
 
         proxy = {
             "http": http_proxy,
@@ -23,7 +24,7 @@ class Backend(BaseBackend):
             "Authorization": f"Bearer {api_key}"
         }
         data = {
-            "model": "gpt-4o",
+            "model": model,
             "messages": [
                 {
                     "role": "user",
