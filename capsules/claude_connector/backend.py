@@ -9,10 +9,11 @@ import os
 class Backend(BaseBackend):
 
     def claude(self, jpg_as_base64: str, options: Dict[str, OPTION_TYPE],) -> str:
-        api_key = os.environ.get('CLAUDE_APIKEY','')
-        http_proxy = os.environ.get('CLAUDE_HTTPPROXY','')
-        prompt = os.environ.get('CLAUDE_PROMPT','')
-
+        api_key = options["api_key"]
+        http_proxy = options["http_proxy"]
+        prompt = options["prompt"]
+        model = options["model"]
+ 
         proxy = {
             "http": http_proxy,
             "https": http_proxy
@@ -24,7 +25,7 @@ class Backend(BaseBackend):
             "Content-Type": "application/json"
         }
         data = {
-            "model": "claude-3-5-sonnet-20240620",
+            "model": model,
             "messages": [
                 {
                     "role": "user",

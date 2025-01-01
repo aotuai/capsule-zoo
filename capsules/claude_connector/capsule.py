@@ -12,6 +12,22 @@ class Capsule(BaseCapsule):
         )
     backend_loader = lambda capsule_files, device: Backend()
     options = {
+        "api_key": TextOption(
+            default = "",
+            description ="Fill in the API Key",
+        ),
+        "http_proxy": TextOption(
+            default = "",
+            description ="If an http_proxy is required to access the service",
+        ),
+        "prompt": TextOption(
+            default = "",
+            description ="The prompt sent to the service",
+        ),
+        "model": TextOption(
+            default = "claude-3-5-sonnet-20240620",
+            description ="The model name provided by the API",
+        ),
         "temperature": FloatOption(
             default = 1.0,
             min_val = 0.0,
