@@ -1,15 +1,21 @@
-from vcap import BaseCapsule, NodeDescription, FloatOption, IntOption
+from vcap import BaseCapsule, NodeDescription, FloatOption, IntOption, TextOption
 from .backend import Backend
 
 class Capsule(BaseCapsule):
-    name = "claude_connector"
+    name = "claude_classifier_agent"
+    description = "✨ v1.0. The capsule takes detections from other capsules, and send a prompt request " \
+                  "to Anthropic API for classification and publish the answers to BrainFrame API or for other "\
+                  "capsules to consume and generate fused results."
     version = 1
-    input_type = NodeDescription(size=NodeDescription.Size.NONE)
+    input_type = NodeDescription(
+        size=NodeDescription.Size.ALL,
+        detections=["person"]
+    )
     output_type = NodeDescription(
-        size=NodeDescription.Size.SINGLE,
+        size=NodeDescription.Size.ALL,
         detections=["claude"],
         extra_data=["claude"]
-        )
+    )
     backend_loader = lambda capsule_files, device: Backend()
     options = {
         "api_key": TextOption(
@@ -21,7 +27,7 @@ class Capsule(BaseCapsule):
             description ="If an http_proxy is required to access the service",
         ),
         "prompt": TextOption(
-            default = "",
+            default = "Does this person in the picture wear a safety hat? Please reply with True or False. Please do not include anything else other than the number",
             description ="The prompt sent to the service",
         ),
         "model": TextOption(
@@ -40,4 +46,4 @@ class Capsule(BaseCapsule):
             max_val = 8192,
             description ="The maximum number of tokens to generate before stopping."
         )
-        }
+    }
