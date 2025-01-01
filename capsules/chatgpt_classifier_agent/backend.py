@@ -13,11 +13,9 @@ class Backend(BaseBackend):
         http_proxy = options["http_proxy"]
         prompt = options["prompt"]
         model = options["model"]
+        temperature = options["temperature"]
+        max_tokens = options["max_tokens"]
 
-        proxy = {
-            "http": http_proxy,
-            "https": http_proxy
-        }
         url = "https://api.openai.com/v1/chat/completions"
         headers = {
             "Content-Type": "application/json",
@@ -42,14 +40,22 @@ class Backend(BaseBackend):
                     ]
                 }
             ],
-            "temperature": options["temperature"],
-            "max_tokens": options["max_tokens"],
+            "temperature": temperature,
+            "max_tokens": max_tokens,
             "top_p": 1,
             "frequency_penalty": 0,
             "presence_penalty": 0
         }
-        response = requests.post(url, headers=headers, json=data, proxies=proxy)
-        return response.json()
+
+        if http_proxy != "":
+            proxies = {
+                "http": http_proxy,
+                "https": http_proxy
+            }
+            response = requests.post(url, headers=headers, json=data, proxies=proxies)
+        else:
+            response = requests.post(url, headers=headers, json=data)
+        return response
 
     def process_frame(self, frame: np.ndarray,
                       detection_node: DETECTION_NODE_TYPE,
@@ -59,8 +65,9 @@ class Backend(BaseBackend):
         height, width = frame.shape[:2]
         _, buffer = cv2.imencode('.jpg', frame)
         jpg_as_base64 = base64.b64encode(buffer).decode('utf-8')
-        extra_data = self.chatgpt(jpg_as_base64, options)['choices'][0]['message']['content']
-        detections.append(DetectionNode( name="chatgpt", coords=[[0,0], [width,0], [width,height], [0,height]], extra_data={"chatgpt": extra_data}))
-        return detections
-    
 
+        response = self.chatgpt(jpg_as_base64, options)
+        if response.status_code == 200:
+            extra_data = response['choices'][0]['message']['content']
+            detections.append(DetectionNode( name="chatgpt", coords=[[0,0], [width,0], [width,height], [0,height]], extra_data={"chatgpt": extra_data}))
+        return detections
