@@ -78,7 +78,10 @@ Then, run the tests with `pytest`, at the root of the repository.
 ```commandline
 pytest .
 ```
-
+or with more debugging information,
+```
+pytest -x -v --capture=no --log-cli-level=INFO
+```
 [install git lfs]: https://github.com/git-lfs/git-lfs/wiki/Installation
 [open vision capsules]: https://github.com/opencv/open_vision_capsules
 [ovc docs]: https://openvisioncapsules.readthedocs.io/en/latest/
