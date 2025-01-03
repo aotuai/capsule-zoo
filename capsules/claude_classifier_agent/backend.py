@@ -18,9 +18,9 @@ class Backend(BaseBackend):
 
         url = "https://api.anthropic.com/v1/messages"
         headers = {
+            "Content-Type": "application/json",
             "x-api-key": api_key,
             "anthropic-version": "2023-06-01",
-            "Content-Type": "application/json"
         }
         data = {
             "model": model,
