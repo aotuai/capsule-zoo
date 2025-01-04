@@ -53,7 +53,9 @@
 
 ## 胶囊支持的参数配置
 
-目前胶囊支持针对`temperature`和`max_tokens`进行配置，具体说明参考OpenAI官方说明：<https://platform.openai.com/docs/api-reference/chat/create>
+目前胶囊支持针对`temperature`和`max_tokens`两个大模型调用参数进行配置，具体说明参考OpenAI官方说明：<https://platform.openai.com/docs/api-reference/chat/create>
+
+大模型调用的开销比较大，可以通过`detection_interval`已秒为单位设置调用的时间间隔。该参数默认为0，设置为非0值时，因为只是间隔一定的时间抽一帧检测，在BrainFrame客户端上可能看不到检测框，但数据库中可以看到检测输出。使用命令行工具`brainframe-apps get_zone_statuses`也可以观察到大模型检测输出的检测结果。
 
 ## 遗留问题
 

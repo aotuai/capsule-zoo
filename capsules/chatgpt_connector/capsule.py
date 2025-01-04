@@ -1,9 +1,11 @@
 from vcap import BaseCapsule, NodeDescription, FloatOption, IntOption
 from .backend import Backend
+from .stream_state import StreamState
 
 class Capsule(BaseCapsule):
     name = "chatgpt_connector"
     version = 1
+    stream_state = StreamState
     input_type = NodeDescription(size=NodeDescription.Size.NONE)
     output_type = NodeDescription(
         size=NodeDescription.Size.SINGLE,
@@ -23,5 +25,11 @@ class Capsule(BaseCapsule):
             min_val = 0,
             max_val = 8192,
             description ="The maximum number of tokens that can be generated in the chat completion."
+        ),
+        "detection_interval": IntOption(
+            default = 0,
+            min_val = 0,
+            max_val = 85400,
+            description ="The time interval for detection, measured in seconds."
         )
         }
