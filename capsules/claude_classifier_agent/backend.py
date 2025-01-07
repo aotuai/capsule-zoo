@@ -1,10 +1,13 @@
-from vcap import BaseBackend, DETECTION_NODE_TYPE, OPTION_TYPE, BaseStreamState, DetectionNode
+from vcap import BaseBackend, DETECTION_NODE_TYPE, OPTION_TYPE, DetectionNode
 from typing import Dict
 import numpy as np
 import cv2
 import base64
 import requests
 import os
+import time
+
+from .stream_state import StreamState
 
 class Backend(BaseBackend):
 
@@ -61,8 +64,10 @@ class Backend(BaseBackend):
     def process_frame(self, frame: np.ndarray,
                       detection_node: DETECTION_NODE_TYPE,
                       options: Dict[str, OPTION_TYPE],
-                      state: BaseStreamState) -> DETECTION_NODE_TYPE:
+                      state: StreamState) -> DETECTION_NODE_TYPE:
         detections = []
+        if((time.time() - state.get_last_detection_timestamp()) < options["detection_interval"]):
+            return detections
         height, width = frame.shape[:2]
         _, buffer = cv2.imencode('.jpg', frame)
         jpg_as_base64 = base64.b64encode(buffer).decode('utf-8')
@@ -71,4 +76,5 @@ class Backend(BaseBackend):
         if response.status_code == 200:
             extra_data = response['choices'][0]['message']['content']
             detections.append(DetectionNode( name="claude", coords=[[0,0], [width,0], [width,height], [0,height]], extra_data={"claude": extra_data}))
+            state.set_last_detection_timestamp(time.time())
         return detections
