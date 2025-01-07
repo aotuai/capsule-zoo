@@ -16,7 +16,7 @@
 
 ## 查看分析输出结果示例
 
-1. 执行数据库容器中的命令查询detection表内最新数据：`docker exec -it brainframe_database_1 psql -U user -d brainframe -c "select * from detection order by id desc;"`例如：
+1. 执行数据库容器中的命令查询detection表内最新数据：`docker exec -it brainframe-database-1 psql -U user -d brainframe -c "select * from detection where class_name = 'claude' order by id desc;"`例如：
 
     ```txt
     id    | parent_id | class_name | identity_id |                                                                                                                        extra_data_json                                                                                                                         |              coords_json              | track_id

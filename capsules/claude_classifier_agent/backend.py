@@ -74,7 +74,7 @@ class Backend(BaseBackend):
 
         response = self.claude(jpg_as_base64, options)
         if response.status_code == 200:
-            extra_data = response['choices'][0]['message']['content']
+            extra_data = response.json()['choices'][0]['message']['content']
             detections.append(DetectionNode( name="claude", coords=[[0,0], [width,0], [width,height], [0,height]], extra_data={"claude": extra_data}))
             state.set_last_detection_timestamp(time.time())
         return detections

@@ -16,9 +16,9 @@
 
 ## 查看分析输出结果示例
 
-1. 进入数据库所在容器：`docker exec -it brainframe_database_1 /bin/bash`
+1. 进入数据库所在容器：`docker exec -it brainframe-database-1 /bin/bash`
 1. 登录数据库命令行：`psql -U user -d brainframe`
-1. 查询detection表内最新数据:`select * from detection order by id desc;`例如：
+1. 查询detection表内最新数据:`select * from detection where class_name = 'chatgpt' order by id desc;`例如：
 
     ```txt
     brainframe=# select * from detection order by id desc;
