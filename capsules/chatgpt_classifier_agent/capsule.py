@@ -4,7 +4,7 @@ from .stream_state import StreamState
 
 class Capsule(BaseCapsule):
     name = "chatgpt_classifier_agent"
-    description = "✨ v0.1. The capsule takes detections from other capsules, and send a prompt request " \
+    description = "v0.1. The capsule takes detections from other capsules, and send a prompt request " \
                   "to OpenAI API for classification and publish the answers to BrainFrame API or for other "\
                   "capsules to consume and generate fused results."
     version = 1
