@@ -6,12 +6,19 @@ import base64
 import requests
 import os
 import time
+import threading
 
 from .stream_state import StreamState
 
 class Backend(BaseBackend):
 
-    def chatgpt(self, jpg_as_base64: str, options: Dict[str, OPTION_TYPE],) -> str:
+    def __init__(self):
+        super().__init__()
+        self.thread_idx = 0
+
+    def chatgpt(self, jpg_as_base64: str, options: Dict[str, OPTION_TYPE], width, height, state: StreamState, idx):
+        state.increase_thread_num(1)
+        print(f"chatgpt thread {idx} running")
         api_key = options["api_key"]
         http_proxy = options["http_proxy"]
         prompt = options["prompt"]
@@ -50,6 +57,7 @@ class Backend(BaseBackend):
             "presence_penalty": 0
         }
 
+        # '''
         if http_proxy != "":
             proxies = {
                 "http": http_proxy,
@@ -58,22 +66,57 @@ class Backend(BaseBackend):
             response = requests.post(url, headers=headers, json=data, proxies=proxies)
         else:
             response = requests.post(url, headers=headers, json=data)
-        return response
+
+        if response.status_code == 200:
+            detections = []
+            extra_data = response.json()['choices'][0]['message']['content']
+            detections.append(DetectionNode(name="chatgpt", coords=[[0,0], [width,0], [width,height], [0,height]],
+                                            extra_data={"chatgpt": extra_data}))
+            state.set_detection_response(detections)
+
+        '''
+        # for local debug
+        time.sleep(0)
+        if True:
+            detections = []
+            extra_data = f"{idx}"
+            detections.append(DetectionNode(name="chatgpt", coords=[[0, 0], [width, 0], [width, height], [0, height]],
+                                            extra_data={"chatgpt": extra_data}))
+            state.set_detection_response(detections)
+        '''
+
+        print(f"chatgpt thread {idx} end")
+        state.reduced_thread_num(1)
+
+    def create_chatgpt_thread(self, image_base64, options, width, height, state):
+        idx = self.thread_idx
+        t = threading.Thread(target=self.chatgpt,
+                             args=(image_base64, options, width, height, state, idx),
+                             name=f"chatgpt-thread-{self.thread_idx}")
+        self.thread_idx += 1
+        t.start()
+
 
     def process_frame(self, frame: np.ndarray,
                       detection_node: DETECTION_NODE_TYPE,
                       options: Dict[str, OPTION_TYPE],
                       state: StreamState) -> DETECTION_NODE_TYPE:
-        detections = []
-        if((time.time() - state.get_last_detection_timestamp()) < options["detection_interval"]):
-            return detections
-        height, width = frame.shape[:2]
-        _, buffer = cv2.imencode('.jpg', frame)
-        jpg_as_base64 = base64.b64encode(buffer).decode('utf-8')
+        #detections = []
+        if (time.time() - state.get_last_detection_timestamp()) < options["detection_interval"]:
+            return state.get_detection_response()
 
-        response = self.chatgpt(jpg_as_base64, options)
-        if response.status_code == 200:
-            extra_data = response.json()['choices'][0]['message']['content']
-            detections.append(DetectionNode( name="chatgpt", coords=[[0,0], [width,0], [width,height], [0,height]], extra_data={"chatgpt": extra_data}))
-            state.set_last_detection_timestamp(time.time())
+        if not state.check_thread_full():
+            height, width = frame.shape[:2]
+            _, buffer = cv2.imencode('.jpg', frame)
+            jpg_as_base64 = base64.b64encode(buffer).decode('utf-8')
+            self.create_chatgpt_thread(jpg_as_base64, options, width, height, state)
+
+        #response = self.chatgpt(jpg_as_base64, options)
+        #if response.status_code == 200:
+        #    extra_data = response.json()['choices'][0]['message']['content']
+        #    detections.append(DetectionNode( name="chatgpt", coords=[[0,0], [width,0], [width,height], [0,height]], extra_data={"chatgpt": extra_data}))
+        #    state.set_last_detection_timestamp(time.time())
+
+        detections = state.get_detection_response()
+
         return detections
