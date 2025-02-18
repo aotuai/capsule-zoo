@@ -1,10 +1,10 @@
-from vcap import BaseCapsule, NodeDescription, FloatOption, IntOption, TextOption, DeviceMapper
+from vcap import BaseCapsule, NodeDescription, FloatOption, IntOption, TextOption, DeviceMapper, BoolOption
 from .backend import Backend
 from .stream_state import StreamState
 
 class Capsule(BaseCapsule):
     name = "chatgpt_classifier_agent"
-    description = "v0.2. The capsule takes detections from other capsules, and send a prompt request " \
+    description = "v0.2-1. The capsule takes detections from other capsules, and send a prompt request " \
                   "to OpenAI API for classification and publish the answers to BrainFrame API or for other "\
                   "capsules to consume and generate fused results."
     version = 1
@@ -62,5 +62,15 @@ class Capsule(BaseCapsule):
             min_val = 0,
             max_val = 8192,
             description ="The maximum number of tokens that can be generated in the chat completion."
+        ),
+        "search_count_limit": BoolOption(
+            default=True,
+            description="The system limits of search count."
+        ),
+        "max_search_count": IntOption(
+            default=10,
+            min_val=0,
+            max_val=8192,
+            description="The maximum number of search count."
         )
     }

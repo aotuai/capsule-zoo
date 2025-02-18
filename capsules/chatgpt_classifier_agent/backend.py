@@ -10,11 +10,8 @@ import threading
 
 from .stream_state import StreamState
 
-class Backend(BaseBackend):
 
-    def __init__(self):
-        super().__init__()
-        self.thread_idx = 0
+class Backend(BaseBackend):
 
     def chatgpt(self, jpg_as_base64: str, options: Dict[str, OPTION_TYPE], width, height, state: StreamState, idx):
         state.increase_thread_num(1)
@@ -76,7 +73,7 @@ class Backend(BaseBackend):
 
         '''
         # for local debug
-        time.sleep(0)
+        time.sleep(2)
         if True:
             detections = []
             extra_data = f"{idx}"
@@ -89,26 +86,30 @@ class Backend(BaseBackend):
         state.reduced_thread_num(1)
 
     def create_chatgpt_thread(self, image_base64, options, width, height, state):
-        idx = self.thread_idx
+        idx = state.get_thread_idx()
         t = threading.Thread(target=self.chatgpt,
                              args=(image_base64, options, width, height, state, idx),
-                             name=f"chatgpt-thread-{self.thread_idx}")
-        self.thread_idx += 1
+                             name=f"chatgpt-thread-{idx}")
+        state.set_thread_idx(idx+1)
         t.start()
-
 
     def process_frame(self, frame: np.ndarray,
                       detection_node: DETECTION_NODE_TYPE,
                       options: Dict[str, OPTION_TYPE],
                       state: StreamState) -> DETECTION_NODE_TYPE:
         #detections = []
+        if state.get_last_search_count_limit() is False and options["search_count_limit"] is True:
+            state.set_limit_start_thread_idx()
+        state.set_last_search_count_limit(options["search_count_limit"])
         if (time.time() - state.get_last_detection_timestamp()) < options["detection_interval"]:
             return state.get_detection_response()
 
-        if not state.check_thread_full():
+        if state.check_thread_full() is False and \
+                state.check_search_count_full(options["search_count_limit"], options["max_search_count"]) is False:
             height, width = frame.shape[:2]
             _, buffer = cv2.imencode('.jpg', frame)
             jpg_as_base64 = base64.b64encode(buffer).decode('utf-8')
+            state.set_last_detection_timestamp(time.time())
             self.create_chatgpt_thread(jpg_as_base64, options, width, height, state)
 
         #response = self.chatgpt(jpg_as_base64, options)
