@@ -4,6 +4,7 @@ import numpy as np
 import tempfile
 from pathlib import Path
 import time
+import cv2
 
 from vcap import (
     Resize,
@@ -54,7 +55,10 @@ class Backend(BaseBackend):
         try:
             start_time = time.time()
             is_cell = options["cell"]
-
+            to_gray = options["to_gray"]
+            if to_gray:
+                frame1 = cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY)
+                frame = cv2.cvtColor(frame1, cv2.COLOR_GRAY2BGR)
             cell_x, cell_y = 0, 0
             if is_cell:
                 cell_x = options["cell_x"]
@@ -88,12 +92,14 @@ class Backend(BaseBackend):
             end_time = time.time()
             end_time = end_time - start_time
 
+            '''
             if end_time <= 3:
                 time.sleep(3)
             elif end_time <= 6:
                 time.sleep(round(9-end_time))
             elif end_time <= 9:
                 time.sleep(round(12-end_time))
+            '''
 
             if is_cell:
                 state.update_last_frame(frame, detections)
@@ -110,7 +116,8 @@ class Backend(BaseBackend):
 
         for idx, (box, txt) in enumerate(zip(boxes, txts)):
             extra_data = {"ocr": txt[0],
-                          detection_confidence: float(txt[1])}
+                          detection_confidence: float(txt[1]),
+                          "serial_no": idx}
             if is_cell:
                 offset_x, offset_y = offset
             else:

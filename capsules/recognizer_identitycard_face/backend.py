@@ -1,0 +1,87 @@
+import logging
+from typing import Dict
+
+import numpy as np
+
+from vcap import (
+    Crop,
+    BaseBackend,
+    DETECTION_NODE_TYPE,
+    BaseStreamState,
+    DetectionNode,
+    rect_to_coords,
+    OPTION_TYPE)
+
+from vcap_utils import OpenFaceEncoder, cosine_distance
+
+
+class Backend(OpenFaceEncoder):
+    def process_frame(self, frame: np.ndarray,
+                      detection_node: DETECTION_NODE_TYPE,
+                      options: Dict[str, OPTION_TYPE],
+                      state: BaseStreamState) -> DETECTION_NODE_TYPE:
+        # Crop with a 15% padding around the face to emulate how the model was
+        # trained.
+        if len(detection_node) == 0:
+            return []
+        prediction = []
+        for det in detection_node:
+            # crop = Resize(frame).crop_bbox(det.bbox).frame
+            pad = 15
+            crop = (Crop.from_detection(det)
+                    .pad_percent(top=pad, bottom=pad, left=pad, right=pad)
+                    .apply(frame))
+
+            prediction.append(self.send_to_batch(crop).result())
+
+        try:
+            # detection_node.encoding = prediction.vector
+            distance = self.vector_compare(prediction)
+
+            #coords = detection_node[0].coords  # .extend(detection_node[1].coords)
+            # Normalized to a value of [0,1]
+            confident = 1 - distance / 1.5
+            attr = "false"
+            if confident >= options["threshold"]:
+                attr = "true"
+
+        except Exception as e:
+            logging.error(f"{e}")
+            attr = "false"
+            confident = 0
+
+        face_node = DetectionNode(
+            name="face_compare",
+            coords=rect_to_coords(detection_node[0].bbox.rect),
+            extra_data={"face_compare_confidence": float(confident)},
+            attributes={"face_compare": attr})
+
+        return [face_node]
+
+    @staticmethod
+    def vector_compare(predictions):
+        # compare prediction.vertor at here
+        if len(predictions) != 2:
+            return 1.5
+
+        identity_vec = np.array([predictions[0].vector])
+        candidate_vec = np.array([predictions[1].vector])
+
+        '''
+        # cosine similarity [0~10], the greater the distance value, the more similar it is.
+        distances = cosine_distance(candidate_vec, identity_vec)
+        print(distances)
+        distances = abs(distances)
+        lowest_index = np.argmin(distances)
+        lowest_distance = distances[lowest_index][0]
+        print(f"cosine_distance: {lowest_distance}")
+        return lowest_distance < recognition_threshold, lowest_distance
+        '''
+        # Euclidean distance [0~1.5], the smaller the distance value, the more similar it is.
+        distance = np.linalg.norm( candidate_vec - identity_vec)
+
+        # Normalized to a value of [0,1]
+        # distance = 1 - distance / 1.5
+        return distance
+
+
