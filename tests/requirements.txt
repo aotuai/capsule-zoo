@@ -1,5 +1,5 @@
-vcap==0.3.8
-vcap_utils==0.3.8
+vcap>=0.5.2
+vcap_utils>=0.5.2
 pytest~=5.0
 mock~=3.0
 onnxruntime==1.10.0
