@@ -29,10 +29,9 @@ class StreamState(BaseStreamState):
 
     def get_detection_response(self):
         self.lock.acquire()
-        if len(self.detections) > 0:
-            detections = self.detections.pop(0)
-        else:
-            detections = []
+        detections = []
+        for k in range(len(self.detections)):
+            detections.append(self.detections.pop(0))
         self.lock.release()
         return detections
 

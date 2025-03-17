@@ -64,7 +64,7 @@ class Capsule(BaseCapsule):
             description ="The maximum number of tokens that can be generated in the chat completion."
         ),
         "max_detections_per_frame": IntOption(
-            default=1,
+            default=2,
             min_val=0,
             max_val=10,
             description="The maximum number of people that can be detected by chatgpt per frame."
