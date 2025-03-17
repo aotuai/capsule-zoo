@@ -67,11 +67,11 @@ class Backend(BaseBackend):
                 response = requests.post(url, headers=headers, json=data)
 
             if response.status_code == 200:
-                detections = []
+                # detections = []
                 extra_data = response.json()['choices'][0]['message']['content']
-                detections.append(DetectionNode(name="chatgpt", coords=[[x, y], [x+width, y], [x+width, y+height], [x, y+height]],
-                                                extra_data={"chatgpt": extra_data}))
-                state.set_detection_response(detections)
+                node = DetectionNode(name="chatgpt", coords=[[x, y], [x+width, y], [x+width, y+height], [x, y+height]],
+                                     extra_data={"chatgpt": extra_data})
+                state.set_detection_response(node)
         except Exception as e:
             logging.error(f"chatgpt: {e}")
 
@@ -79,11 +79,11 @@ class Backend(BaseBackend):
         # for local debug
         time.sleep(2)
         if True:
-            detections = []
+            # detections = []
             extra_data = f"{idx}"
-            detections.append(DetectionNode(name="chatgpt", coords=[[x, y], [x+width, y], [x+width, y+height], [x, y+height]],
-                                            extra_data={"chatgpt": extra_data}))
-            state.set_detection_response(detections)
+            node = DetectionNode(name="chatgpt", coords=[[x, y], [x+width, y], [x+width, y+height], [x, y+height]],
+                                 extra_data={"chatgpt": extra_data})
+            state.set_detection_response(node)
         '''
 
         logging.info(f"chatgpt thread {idx} end")
@@ -112,21 +112,25 @@ class Backend(BaseBackend):
                 min_pixels = 900
                 person_pixels = {}
                 for det in detection_node:
-                    coor = det.__dict__["coords"]
+                    if type(det) == dict:
+                        coor = det["coords"]
+                    else:
+                        coor = det.__dict__["coords"]
                     width = coor[1][0] - coor[0][0]
                     height = coor[2][1] - coor[0][1]
                     cur_pixels = width * height
                     if cur_pixels >= min_pixels:
-                        person_pixels[cur_pixels] = [coor[0][0], coor[0][1], width, height]
+                        person_pixels[cur_pixels] = [coor[0][0], coor[0][1], coor[2][0], coor[2][1]]
                 person_list = [(k, person_pixels[k]) for k in sorted(person_pixels.keys(), reverse=True)]
 
                 num = 0
                 for (_, cell) in person_list:
-                    cell_bbox = BoundingBox(cell[0], cell[1], cell[0] + cell[2], cell[1] + cell[3])
-                    frame = Resize(frame).crop_bbox(cell_bbox).frame
+                    cell_bbox = BoundingBox(cell[0], cell[1], cell[2], cell[3])
+                    frame_crop = Resize(frame).crop_bbox(cell_bbox).frame
 
-                    height, width = frame.shape[:2]
-                    _, buffer = cv2.imencode('.jpg', frame)
+                    height, width = frame_crop.shape[:2]
+                    # logging.info(f"crop frame height={height}, width={width}")
+                    _, buffer = cv2.imencode('.jpg', frame_crop)
                     jpg_as_base64 = base64.b64encode(buffer).decode('utf-8')
                     state.set_last_detection_timestamp(time.time())
                     self.create_chatgpt_thread(jpg_as_base64, options, cell[0], cell[1], width, height, state)
