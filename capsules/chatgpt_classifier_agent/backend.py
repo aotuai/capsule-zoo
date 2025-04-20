@@ -34,6 +34,7 @@ class Backend(BaseBackend):
         logging.info(f"chatgpt_classifier_agent create thread pool")
 
     def close(self):
+        super().close()
         """关闭线程池,等待所有线程任务完成"""
         self.executor.shutdown(wait=True)
         logging.info(f"chatgpt_classifier_agent shutdown thread pool end.")
