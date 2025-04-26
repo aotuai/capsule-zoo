@@ -15,9 +15,9 @@ class Capsule(BaseCapsule):
         size=NodeDescription.Size.ALL,
         detections=["face"])
     output_type = NodeDescription(
-        size=NodeDescription.Size.SINGLE,
+        size=NodeDescription.Size.ALL,
         detections=["face_compare"],
-        extra_data = ["face_compare_confidence"]
+        extra_data=["face_compare_confidence"]
         )
     backend_loader = lambda capsule_files, device: Backend(
         device=device,
