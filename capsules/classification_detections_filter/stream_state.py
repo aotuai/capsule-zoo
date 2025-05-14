@@ -19,6 +19,7 @@ class StreamState(BaseStreamState):
             self.counter = counter
             self.category = category
             self.values = values
+            self.window_start = time.time()
             self.true_counter = {}
             for value in self.values:
                 self.true_counter[value] = 0
@@ -35,7 +36,7 @@ class StreamState(BaseStreamState):
         self.true_counter[value] += 1
         logging.info(f"add_true_counter: {self.duration},{self.counter},{self.true_counter}")
         if self.true_counter[value] >= self.counter:
-            self.true_counter[value] = 0
+            self.reset_window()
             return True
         return False
 
