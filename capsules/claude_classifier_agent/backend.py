@@ -6,6 +6,7 @@ import base64
 import requests
 import os
 import time
+import logging
 
 from .stream_state import StreamState
 
@@ -72,9 +73,13 @@ class Backend(BaseBackend):
         _, buffer = cv2.imencode('.jpg', frame)
         jpg_as_base64 = base64.b64encode(buffer).decode('utf-8')
 
-        response = self.claude(jpg_as_base64, options)
-        if response.status_code == 200:
-            extra_data = response.json()['choices'][0]['message']['content']
-            detections.append(DetectionNode( name="claude", coords=[[0,0], [width,0], [width,height], [0,height]], extra_data={"claude": extra_data}))
-            state.set_last_detection_timestamp(time.time())
+        try:
+            response = self.claude(jpg_as_base64, options)
+            if response.status_code == 200:
+                extra_data = response.json()['choices'][0]['message']['content']
+                detections.append(DetectionNode( name="claude", coords=[[0,0], [width,0], [width,height], [0,height]], extra_data={"claude": extra_data}))
+                state.set_last_detection_timestamp(time.time())
+        except Exception as e:
+            logging.error(f"claude: {e}")
+
         return detections
