@@ -59,7 +59,26 @@ pip install pyzbar
 > - **macOS**：`brew install zbar`
 > - **Windows**：直接 `pip install pyzbar`，无需额外操作（wheel 包含预编译 DLL）
 
+------
 
+### 引擎解码能力(pyzbar vs pyrxing)
+
+| #    | 码制           | pyzbar   | pyrxing   |
+| ---- | -------------- | -------- | --------- |
+| 01   | Code128        | OK       | OK        |
+| 02   | GS1-128        | OK       | OK        |
+| 03   | ITF            | OK       | OK        |
+| 04   | Code39         | OK       | OK        |
+| 05   | DataMatrix     | 不支持   | OK        |
+| 06   | QRCode         | OK       | OK        |
+| 07   | Code128 (Rack) | OK       | OK        |
+| 08   | Code39 (Rack)  | OK       | OK        |
+| 09   | PDF417         | 不支持   | OK        |
+| 10   | MaxiCode       | 不支持   | OK        |
+| 11   | UPC-A          | OK       | OK        |
+| 12   | UPC-E          | 不支持   | OK        |
+| 13   | EAN-13         | OK       | OK        |
+|      | **合计**       | **9/13** | **13/13** |
 
 ---
 
@@ -81,8 +100,6 @@ pip install pyzbar
 
    - 解码bar code 返回coords 是一直线，pyrxing 设计如此，不是bug;
 
-
-
 ###### 注2：
 
 当使用pyrxing 解码时：
@@ -103,8 +120,8 @@ pip install pyzbar
 
 | 策略 | 说明 |
 |------|------|
-| 快速解码 | 直方图均衡化 |
-| 完整解码 | 双边滤波 + CLAHE 增强 |
+| 快速解码 | 直方图均衡化，约 5–10 ms |
+| 完整解码 | 双边滤波 + CLAHE 增强，约 20–30 ms |
 | 透视校正 | 检测矩形/梯形区域，透视展平后解码（仅在图像含畸变区域时启用） |
 | 检测角旋转 | HoughLines 检测主导角度，自动旋转对齐 |
 | 透视 + 旋转 | 先透视校正，再旋转对齐（组合策略） |
@@ -169,6 +186,27 @@ pip install pyzbar
 
 ---
 
+### Engine decoding capability (pyzbar vs pyrxing)
+
+| #    | Code Format    | pyzbar        | pyrxing   |
+| ---- | -------------- | ------------- | --------- |
+| 01   | Code128        | OK            | OK        |
+| 02   | GS1-128        | OK            | OK        |
+| 03   | ITF            | OK            | OK        |
+| 04   | Code39         | OK            | OK        |
+| 05   | DataMatrix     | Not supported | OK        |
+| 06   | QRCode         | OK            | OK        |
+| 07   | Code128 (Rack) | OK            | OK        |
+| 08   | Code39 (Rack)  | OK            | OK        |
+| 09   | PDF417         | Not supported | OK        |
+| 10   | MaxiCode       | Not supported | OK        |
+| 11   | UPC-A          | OK            | OK        |
+| 12   | UPC-E          | Not supported | OK        |
+| 13   | EAN-13         | OK            | OK        |
+|      | **Total**      | **9/13**      | **13/13** |
+
+------
+
 ### Return Value
 
 Each decoded result is a `DetectionNode` object with the following fields:
@@ -178,16 +216,14 @@ Each decoded result is a `DetectionNode` object with the following fields:
 | `class_name` | - | barcode | |
 | `extra_data` | `codetype` | `str` | Code format, e.g. `QR_CODE`, `EAN_13`, `CODE_128` |
 | | `code` | `str` | Decoded content |
-| `coords` | - | [(x0,y0), (x1,y1), (x2,y2), (x3,y3)] | Bounding rectangle vertices in the original image (pixels)，Notes1 |
-| `confidence` | - | None | Confidence score (always `None` — see note below), Notes2 |
+| `coords` | - | [(x0,y0), (x1,y1), (x2,y2), (x3,y3)] | Bounding rectangle vertices in the original image (pixels) Notes1 |
+| `confidence` | - | None | Confidence score (always `None` — see note below) Notes2 |
 
 ###### Notes1:
 
 When decoded with **pyrxing**:
 
    - `coords` for a barcode is returned as a straight line — this is by pyrxing design, not a bug
-
-
 
 ###### Notes2:
 
@@ -209,8 +245,8 @@ The tool builds and executes up to 10 strategies in the following order:
 
 | Strategy | Description |
 |----------|-------------|
-| Quick decode | Histogram equalization |
-| Full decode | Bilateral filter + CLAHE enhancement |
+| Quick decode | Histogram equalization, ~5–10 ms |
+| Full decode | Bilateral filter + CLAHE enhancement, ~20–30 ms |
 | Perspective correction | Detects rectangular / trapezoidal regions and warps perspective (only when distortion is present) |
 | Dominant-angle rotation | Auto-rotates to align based on HoughLines dominant angle |
 | Perspective + rotation | Perspective correction followed by rotation alignment (combined strategy) |
