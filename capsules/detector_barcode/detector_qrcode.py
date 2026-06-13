@@ -58,9 +58,10 @@ except ImportError:
         if not PIL_AVAILABLE:
             logging.warning("PIL/Pillow 未安装，pyzbar 路径将不可用")
         logging.info("使用 pyzbar 解码引擎")
-    except ImportError:
+    except ImportError as e:
         PYZBAR_AVAILABLE = False
-        raise ImportError("请安装 pyrxing 或 pyzbar")
+        err_msg = f"Please install pyrxing or pyzbar: {e}"
+        raise ImportError(err_msg)
 
 
 class DecodeStatus(Enum):
