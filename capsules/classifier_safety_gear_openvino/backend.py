@@ -70,6 +70,7 @@ def assign_gear_attributes(person_detections: List[DETECTION_NODE_TYPE],
         if cost_iou >= 1:
             continue
         person_det.attributes[gear_type] = f"with_{gear_type}"
-        person_det.extra_data[f"{gear_type}_iou"] = 1 - cost_iou
+        person_det.extra_data[f"{gear_type}_iou"] = float(1 - cost_iou)
         person_det.extra_data[f"{gear_type}_confidence"] = \
-            best_match.extra_data["confidence"]
+            float(best_match.extra_data["confidence"])
+
