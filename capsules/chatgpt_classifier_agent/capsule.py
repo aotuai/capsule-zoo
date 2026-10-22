@@ -3,7 +3,7 @@ from .backend import Backend
 from .stream_state import StreamState
 
 class Capsule(BaseCapsule):
-    name = "chatgpt_classifier_agent"
+    name = "edge_model_router"
     description = "v0.3 The capsule takes detections from other capsules, and send a prompt request " \
                   "to OpenAI API for classification and publish the answers to BrainFrame API or for other "\
                   "capsules to consume and generate fused results."
@@ -16,8 +16,8 @@ class Capsule(BaseCapsule):
     )
     output_type = NodeDescription(
         size=NodeDescription.Size.ALL,
-        detections=["chatgpt"],
-        extra_data=["chatgpt"]
+        detections=["router"],
+        extra_data=["router"]
     )
     backend_loader = lambda capsule_files, device: Backend()
     options = {
@@ -67,7 +67,7 @@ class Capsule(BaseCapsule):
             default=2,
             min_val=0,
             max_val=10,
-            description="The maximum number of people that can be detected by chatgpt per frame."
+            description="The maximum number of people that can be detected by edge_model_router per frame."
         ),
         "current_count": IntOption(
             default=10,

@@ -31,16 +31,16 @@ class Backend(BaseBackend):
         super().__init__()
         self.executor = BoundedThreadPoolExecutor(max_workers=10, max_queue_size=100)
         self.submit_num = 0
-        logging.info(f"chatgpt_classifier_agent create thread pool")
+        logging.info(f"edge_model_router create thread pool")
 
     def close(self):
         super().close()
         """关闭线程池,等待所有线程任务完成"""
         self.executor.shutdown(wait=True)
-        logging.info(f"chatgpt_classifier_agent shutdown thread pool end.")
+        logging.info(f"edge_model_router shutdown thread pool end.")
 
-    def chatgpt(self, jpg_as_base64: str, options: Dict[str, OPTION_TYPE], coords, state: StreamState, idx):
-        logging.info(f"chatgpt thread {idx} running")
+    def edge_model_router(self, jpg_as_base64: str, options: Dict[str, OPTION_TYPE], coords, state: StreamState, idx):
+        logging.info(f"edge_model_router thread {idx} running")
         api_key = options["api_key"]
         http_proxy = options["http_proxy"]
         prompt = options["prompt"]
@@ -90,13 +90,13 @@ class Backend(BaseBackend):
 
             if response.status_code == 200:
                 extra_data = response.json()['choices'][0]['message']['content']
-                node = DetectionNode(name="chatgpt", coords=coords,
-                                     extra_data={"chatgpt": extra_data})
+                node = DetectionNode(name="router", coords=coords,
+                                     extra_data={"router": extra_data})
                 state.set_detection_response(node)
         except Exception as e:
-            logging.error(f"chatgpt thread {idx}: {e}")
+            logging.error(f"edge_model_router thread {idx}: {e}")
 
-        logging.info(f"chatgpt thread {idx} end")
+        logging.info(f"edge_model_router thread {idx} end")
 
 
     def process_frame(self, frame: np.ndarray,
@@ -133,7 +133,7 @@ class Backend(BaseBackend):
                         jpg_as_base64 = base64.b64encode(buffer).decode('utf-8')
                         state.set_last_detection_timestamp(time.time())
                         coords = rect_to_coords([cell[0], cell[1], cell[2], cell[3]])
-                        self.executor.submit(self.chatgpt, jpg_as_base64, options, coords, state, self.submit_num)
+                        self.executor.submit(self.edge_model_router, jpg_as_base64, options, coords, state, self.submit_num)
                         self.submit_num += 1
                         num += 1
                         if num >= options["max_detections_per_frame"]:
