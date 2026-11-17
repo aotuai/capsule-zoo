@@ -1,0 +1,2 @@
+Copyright (c) AOTU, Inc. The capsule code in this directory (capsule.py, backend.py, decode.py, nms.py,
+preprocess.py, empty_backend.py) is AOTU template code. It contains no code from the authors of any model.

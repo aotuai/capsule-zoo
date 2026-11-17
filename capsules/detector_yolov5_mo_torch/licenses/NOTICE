@@ -1,0 +1,9 @@
+detector_yolov5_mo_torch
+
+This capsule is a template. It contains no model and no third-party code.
+
+A model you add to it (model.xml and model.bin) keeps its own licence. Ultralytics YOLO models and weights are
+licensed under AGPL-3.0 (https://www.ultralytics.com/license). If you add one, you are responsible for following
+its licence. In particular, do not distribute the capsule unless the licence allows it: AGPL-3.0 requires the
+corresponding source to be offered to everyone who receives it, including over a network. If you add a model,
+also add licenses/model.LICENSE with the model's licence.
