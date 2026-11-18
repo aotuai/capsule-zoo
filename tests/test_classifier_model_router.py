@@ -18,7 +18,7 @@ from classifier_model_router.stream_state import StreamState  # noqa: E402
 
 def options(**changes):
     values = {name: option.default for name, option in Capsule.options.items()}
-    values.update(api_key="sk-test", detection_interval=60, current_count=10)
+    values.update(claude_api_key="sk-ant-test", chatgpt_api_key="sk-oai-test", detection_interval=60, current_count=10)
     values.update(changes)
     return values
 
@@ -61,11 +61,15 @@ def run(reply, people=None, state=None, **option_changes):
     return result, post.call_args_list, state
 
 
-def test_the_provider_is_an_option_and_each_has_its_cheapest_current_model_by_default():
-    assert Capsule.options["provider"].default == "claude" and Capsule.options["model"].default == ""
+def test_only_the_keys_and_the_proxy_are_empty_by_default_and_each_provider_has_its_cheapest_current_model():
+    defaults = {name: option.default for name, option in Capsule.options.items()}
+    assert [name for name, value in defaults.items() if value in ("", None)] == ["claude_api_key", "chatgpt_api_key", "http_proxy"]
+    assert defaults["provider"] == "claude" and defaults["claude_model"] == "claude-haiku-5-5" and defaults["chatgpt_model"] == "gpt-5-nano"
     assert model_of(options()) == "claude-haiku-5-5"
     assert model_of(options(provider="chatgpt")) == "gpt-5-nano"
-    assert model_of(options(provider="chatgpt", model="gpt-5.4-nano")) == "gpt-5.4-nano"
+    assert model_of(options(provider="chatgpt", chatgpt_model="gpt-5.4-nano")) == "gpt-5.4-nano"
+    assert model_of(options(claude_model="claude-sonnet-5-5")) == "claude-sonnet-5-5"
+    assert model_of(options(claude_model=" ")) == "claude-haiku-5-5"  # emptied by hand: the cheapest model again
     assert provider_of(options(provider=" OpenAI ")) == "chatgpt" and provider_of(options(provider="Anthropic")) == "claude"
     with pytest.raises(ValueError, match="unknown provider 'gemini'"):
         provider_of(options(provider="gemini"))
@@ -74,7 +78,7 @@ def test_the_provider_is_an_option_and_each_has_its_cheapest_current_model_by_de
 def test_the_claude_request():
     url, headers, body = build_request("AAAA", options())
     assert url == "https://api.anthropic.com/v1/messages"
-    assert headers["x-api-key"] == "sk-test" and headers["anthropic-version"] == "2023-06-01" and "Authorization" not in headers
+    assert headers["x-api-key"] == "sk-ant-test" and headers["anthropic-version"] == "2023-06-01" and "Authorization" not in headers
     assert body["model"] == "claude-haiku-5-5" and body["output_config"] == {"effort": "low"} and body["max_tokens"] == 1024
     assert not {"temperature", "top_p", "top_k"} & set(body)
     image, text = body["messages"][0]["content"]
@@ -84,11 +88,11 @@ def test_the_claude_request():
 
 def test_the_chatgpt_request_for_a_gpt5_model_and_for_an_older_one():
     url, headers, body = build_request("AAAA", options(provider="chatgpt"))
-    assert url == "https://api.openai.com/v1/chat/completions" and headers["Authorization"] == "Bearer sk-test"
+    assert url == "https://api.openai.com/v1/chat/completions" and headers["Authorization"] == "Bearer sk-oai-test"
     assert body["model"] == "gpt-5-nano" and body["max_completion_tokens"] == 1024 and body["reasoning_effort"] == "low"
     assert not {"temperature", "top_p", "max_tokens"} & set(body)
     assert body["messages"][0]["content"][1]["image_url"] == {"url": "data:image/jpeg;base64,AAAA", "detail": "low"}
-    old = build_request("AAAA", options(provider="chatgpt", model="gpt-4o", effort=""))[2]
+    old = build_request("AAAA", options(provider="chatgpt", chatgpt_model="gpt-4o", effort=""))[2]
     assert old["max_tokens"] == 1024 and not {"max_completion_tokens", "reasoning_effort", "temperature"} & set(old)
 
 
@@ -110,8 +114,8 @@ def test_the_selected_provider_is_called_and_the_answer_is_on_the_box_of_the_per
     assert result[0].coords == rect_to_coords([100, 100, 300, 500])
 
 
-def test_an_unknown_provider_or_a_missing_key_makes_no_call():
-    for changes in ({"provider": "gemini"}, {"api_key": ""}):
+def test_an_unknown_provider_or_a_missing_key_of_the_selected_provider_makes_no_call():
+    for changes in ({"provider": "gemini"}, {"claude_api_key": ""}, {"provider": "chatgpt", "chatgpt_api_key": ""}):
         result, calls, state = run(Reply(body=chatgpt_answer("True")), **changes)
         assert result == [] and calls == [] and state.get_last_detection_timestamp() > 0
 

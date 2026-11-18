@@ -35,7 +35,13 @@ def provider_of(options: Dict[str, OPTION_TYPE]) -> str:
 
 
 def model_of(options: Dict[str, OPTION_TYPE]) -> str:
-    return str(options["model"]).strip() or DEFAULT_MODELS[provider_of(options)]
+    """The model option of the selected provider; the cheapest current model of the provider when it was left empty."""
+    provider = provider_of(options)
+    return str(options[f"{provider}_model"]).strip() or DEFAULT_MODELS[provider]
+
+
+def api_key_of(options: Dict[str, OPTION_TYPE]) -> str:
+    return str(options[f"{provider_of(options)}_api_key"]).strip()
 
 
 def is_reasoning_model(model: str) -> bool:
@@ -49,7 +55,7 @@ def build_request(jpg_as_base64: str, options: Dict[str, OPTION_TYPE]) -> Tuple[
     provider, model = provider_of(options), model_of(options)
     effort = str(options["effort"]).strip()
     if provider == "claude":
-        headers = {"Content-Type": "application/json", "x-api-key": options["api_key"], "anthropic-version": "2023-06-01"}
+        headers = {"Content-Type": "application/json", "x-api-key": api_key_of(options), "anthropic-version": "2023-06-01"}
         body = {
             "model": model,
             "messages": [{"role": "user", "content": [
@@ -63,7 +69,7 @@ def build_request(jpg_as_base64: str, options: Dict[str, OPTION_TYPE]) -> Tuple[
         return CLAUDE_URL, headers, body
 
     detail = str(options["image_detail"]).strip() or "low"
-    headers = {"Content-Type": "application/json", "Authorization": f"Bearer {options['api_key']}"}
+    headers = {"Content-Type": "application/json", "Authorization": f"Bearer {api_key_of(options)}"}
     body = {
         "model": model,
         "messages": [{"role": "user", "content": [
@@ -177,8 +183,8 @@ class Backend(BaseBackend):
             logging.warning(f"classifier_model_router: {e}")
             self._wait_after_failure(state, options)
             return state.get_detection_response()
-        if not str(options["api_key"]).strip():
-            logging.warning("classifier_model_router: fill in the api_key option to use this capsule")
+        if not api_key_of(options):
+            logging.warning(f"classifier_model_router: fill in the {provider_of(options)}_api_key option to use this capsule")
             self._wait_after_failure(state, options)
             return state.get_detection_response()
 

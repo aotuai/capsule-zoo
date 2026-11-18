@@ -25,12 +25,16 @@ class Capsule(BaseCapsule):
     options = {
         "provider": TextOption(
             default = "claude",
-            description ="Which model to ask: 'claude' (Anthropic API) or 'chatgpt' (OpenAI API). The api_key must be a key of that provider.",
+            description ="Which model to ask: 'claude' (Anthropic API) or 'chatgpt' (OpenAI API). The model and the api_key of that provider are used.",
         ),
-        "model": TextOption(
-            default = "",
-            description ="The model name. Leave it empty to use the cheapest current model of the provider: claude-haiku-5-5 for claude "
-                         "(about US$0.10 per million input tokens), gpt-5-nano for chatgpt (about US$0.05).",
+        "claude_model": TextOption(
+            default = "claude-haiku-5-5",
+            description ="The model used when the provider is claude. The default is the cheapest current Claude model (about US$0.10 per million input tokens); "
+                         "use claude-sonnet-5-5 or claude-opus-5-5 for harder questions.",
+        ),
+        "chatgpt_model": TextOption(
+            default = "gpt-5-nano",
+            description ="The model used when the provider is chatgpt. The default is the cheapest current OpenAI model (about US$0.05 per million input tokens).",
         ),
         "prompt": TextOption(
             default = "Does this person in the picture wear a safety hat? Please reply with True or False. Please do not include anything else other than the word True or False",
@@ -42,9 +46,13 @@ class Capsule(BaseCapsule):
             max_val = 86400,
             description ="The time interval for detection, measured in seconds."
         ),
-        "api_key": TextOption(
+        "claude_api_key": TextOption(
             default = "",
-            description ="Fill in the API Key of the selected provider",
+            description ="Your Anthropic API key (used when the provider is claude). There is no default: it is your own key.",
+        ),
+        "chatgpt_api_key": TextOption(
+            default = "",
+            description ="Your OpenAI API key (used when the provider is chatgpt). There is no default: it is your own key.",
         ),
         "http_proxy": TextOption(
             default = "",

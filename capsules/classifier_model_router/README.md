@@ -6,20 +6,20 @@ The `classifier_model_router` capsule takes the people detected by another capsu
 
 The `provider` option selects which model is asked:
 
-| `provider` | API | Default model (cheapest current) | API key |
+| `provider` | API | Model option (default: the cheapest current model) | API key option |
 | --- | --- | --- | --- |
-| `claude` (default) | Anthropic | `claude-haiku-5-5`, about US$0.10 per million input tokens | an Anthropic key |
-| `chatgpt` | OpenAI | `gpt-5-nano`, about US$0.05 per million input tokens | an OpenAI key |
+| `claude` (default) | Anthropic | `claude_model` = `claude-haiku-5-5`, about US$0.10 per million input tokens | `claude_api_key` |
+| `chatgpt` | OpenAI | `chatgpt_model` = `gpt-5-nano`, about US$0.05 per million input tokens | `chatgpt_api_key` |
 
-It is the same capsule for both, so you can switch the provider (and the key) in the options without loading another capsule. The capsule asks one provider at a time; it does not choose between them by itself. If you only use one provider, `claude_classifier_agent` and `chatgpt_classifier_agent` do the same for one provider each.
+It is the same capsule for both, and each provider has its own model and key option, so you can switch the `provider` option without typing anything again or loading another capsule. The capsule asks one provider at a time; it does not choose between them by itself. If you only use one provider, `claude_classifier_agent` and `chatgpt_classifier_agent` do the same for one provider each.
 
 ## Deployment steps
 
-In the options, fill in the provider, the API key of that provider, the proxy server used for the request (only HTTP proxies are supported at the moment, not SOCKS5), and the prompt used to analyze the picture.
+In the options, choose the provider, fill in the API key of that provider (`claude_api_key` or `chatgpt_api_key`; they are empty because they are your own keys), and, if you need one, the proxy server used for the request (only HTTP proxies are supported at the moment, not SOCKS5), and the prompt used to analyze the picture.
 
     ```text
     PROVIDER: "claude"
-    API KEY: "sk-an**************AA"
+    CLAUDE API KEY: "sk-an**************AA"
     HTTP PROXY: "http://192.168.31.19:1081"
     PROMPT: "How many people in this picture wear a yellow safety helmet? Reply with an Arabic numeral, for example: 0. Do not add punctuation or anything else to the reply."
     ```
@@ -38,7 +38,8 @@ In the options, fill in the provider, the API key of that provider, the proxy se
 ## Options
 
 - `provider`: `claude` (default) or `chatgpt` (`anthropic` and `openai` are accepted as well). With any other value the capsule makes no call and logs why.
-- `model`: leave it empty to use the cheapest current model of the provider (table above). For harder questions, use a larger model, for example `claude-sonnet-5-5` or a larger GPT model.
+- `claude_model` and `chatgpt_model`: the model of each provider, filled in with the cheapest current model (`claude-haiku-5-5`, `gpt-5-nano`). For harder questions, use a larger model, for example `claude-sonnet-5-5` or a larger GPT model. If you empty the field, the default is used again.
+- `claude_api_key` and `chatgpt_api_key`: your own keys, so they have no default. Only the key of the selected provider is used. `http_proxy` is empty unless you need a proxy.
 - `effort`: how much the model thinks before it answers. `claude`: `low`, `medium`, `high`, `xhigh` or `max`. `chatgpt` (GPT-5 and o-series models): `minimal` (cheapest), `low`, `medium` or `high`. The default `low` is enough for a True/False answer. Leave it empty for a model that has no such setting (for example Claude Haiku 4.5 or gpt-4o).
 - `max_tokens`: defaults to 1024. It also covers the model's thinking, so a value that is too small can leave no text in the answer.
 - `image_detail`: `chatgpt` only: `low` (the default: a small fixed cost, enough for a yes/no question about a person), `high` or `auto`. A crop larger than 512 pixels is shrunk before it is sent (1024 for `high` and `auto`).
@@ -47,7 +48,7 @@ In the options, fill in the provider, the API key of that provider, the proxy se
 - `current_count`: the number of calls that are still allowed, one per person sent. Each call lowers it, and at 0 nothing is sent. It is kept in memory only, so it is back to the configured value after the options are changed or BrainFrame restarts.
 - The current models only accept their default sampling parameters, so there is no `temperature` option.
 
-Calling a large model is expensive, so you can set the interval between calls with `detection_interval`, in seconds (the default is 60). The capsule sends nothing new while an earlier request has no answer yet. When a call fails (wrong key, network error, no text in the reply) it waits at least 10 seconds before it tries again; with an empty `api_key` it makes no call. A request times out after 60 seconds. Because the capsule only analyzes one frame per interval, you may not see a detection box in the BrainFrame client for long, but the output is in the database. You can also see the model's results with the command line tool `brainframe-apps get_zone_statuses`.
+Calling a large model is expensive, so you can set the interval between calls with `detection_interval`, in seconds (the default is 60). The capsule sends nothing new while an earlier request has no answer yet. When a call fails (wrong key, network error, no text in the reply) it waits at least 10 seconds before it tries again; with an empty key for the selected provider it makes no call. A request times out after 60 seconds. Because the capsule only analyzes one frame per interval, you may not see a detection box in the BrainFrame client for long, but the output is in the database. You can also see the model's results with the command line tool `brainframe-apps get_zone_statuses`.
 
 ## Open issues
 
