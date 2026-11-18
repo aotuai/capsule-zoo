@@ -1,10 +1,10 @@
-from vcap import BaseCapsule, NodeDescription, FloatOption, IntOption, TextOption, DeviceMapper
+from vcap import BaseCapsule, NodeDescription, IntOption, TextOption, DeviceMapper
 from .backend import Backend
 from .stream_state import StreamState
 
 class Capsule(BaseCapsule):
     name = "claude_classifier_agent"
-    description = "v0.1. The capsule takes detections from other capsules, and send a prompt request " \
+    description = "v0.2. The capsule takes detections from other capsules, and send a prompt request " \
                   "to Anthropic API for classification and publish the answers to BrainFrame API or for other "\
                   "capsules to consume and generate fused results."
     version = 1
@@ -22,8 +22,9 @@ class Capsule(BaseCapsule):
     backend_loader = lambda capsule_files, device: Backend()
     options = {
         "model": TextOption(
-            default = "claude-3-5-sonnet-20240620",
-            description ="The model name provided by the API",
+            default = "claude-haiku-5-5",
+            description ="The model name provided by the API. The default, Claude Haiku 5.5, is the cheapest current model "
+                         "(about US$0.10 per million input tokens); use claude-sonnet-5-5 or claude-opus-5-5 for harder questions.",
         ),
         "input_detections": TextOption(
             default = "person",
@@ -51,16 +52,15 @@ class Capsule(BaseCapsule):
             default = "",
             description ="If an http_proxy is required to access the service",
         ),
-        "temperature": FloatOption(
-            default = 1.0,
-            min_val = 0.0,
-            max_val = 1.0,
-            description ="Amount of randomness injected into the response. Use temperature closer to 0.0 for analytical / multiple choice, and closer to 1.0 for creative and generative tasks."
+        "effort": TextOption(
+            default = "low",
+            description ="How much the model thinks before it answers: low, medium, high, xhigh or max. 'low' is cheapest and "
+                         "enough for a True/False question. Leave it empty for a model that has no effort setting (Claude Haiku 4.5, Sonnet 4.5 or older).",
         ),
         "max_tokens": IntOption(
-            default = 256,
-            min_val = 0,
+            default = 1024,
+            min_val = 1,
             max_val = 8192,
-            description ="The maximum number of tokens to generate before stopping."
+            description ="The maximum number of tokens to generate before stopping. It also covers the model's thinking, so keep it above a few hundred."
         )
     }

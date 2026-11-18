@@ -1,37 +1,44 @@
-# claude_classifier_agent胶囊简介
+# claude_classifier_agent capsule
 
-## 概述
+## Overview
 
-`claude_classifier_agent`胶囊连接到`claude-3-5-sonnet`多模态大模型，直接基于提示词对画面内容进行分析，将模型返回的内容存放在`BrainFrame`的`extra_data`输出中，目前最长不超过512个字符，注意精心构造提示词，防止内容超长。
+The `claude_classifier_agent` capsule connects to a Claude multimodal model (by default `claude-haiku-5-5`, the cheapest current model, about US$0.10 per million input tokens). It analyzes the picture directly from a prompt and stores the text the model returns (for example `True` or `1`) in the `claude` field of the `extra_data` output in `BrainFrame`. The answer is currently limited to 512 characters, so write the prompt carefully to keep the answer from getting too long.
 
-## 部署步骤参考
+## Deployment steps
 
-在Option中填入APIKey；发起请求时使用的代理服务器（目前仅支持HTTP代理，不支持SOCK5代理）；针对图像内容进行分析的提示词。
+In the options, fill in the API key, the proxy server used for the request (only HTTP proxies are supported at the moment, not SOCKS5), and the prompt used to analyze the picture.
 
     ```text
     API KEY: "sk-an**************AA"
     HTTP PROXY: "http://192.168.31.19:1081"
-    PROMPT: "这张图中戴黄色安全帽的人有几个？请使用阿拉伯数字回复，例如：0。回复内容中请勿添加标点符号等任何其他内容。"
+    PROMPT: "How many people in this picture wear a yellow safety helmet? Reply with an Arabic numeral, for example: 0. Do not add punctuation or anything else to the reply."
     ```
 
-## 查看分析输出结果示例
+## Viewing the analysis output
 
-1. 执行数据库容器中的命令查询detection表内最新数据：`docker exec -it brainframe-database-1 psql -U user -d brainframe -c "select * from detection where class_name = 'claude' order by id desc;"`例如：
+1. Run this command in the database container to query the latest rows of the detection table: `docker exec -it brainframe-database-1 psql -U user -d brainframe -c "select * from detection where class_name = 'claude' order by id desc;"` For example:
 
     ```txt
-    id    | parent_id | class_name | identity_id |                                                                                                                        extra_data_json                                                                                                                         |              coords_json              | track_id
-    ----------+-----------+------------+-------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------------------------+----------
-    44782514 |           | claude     |             | {"claude":{"id":"msg_01QFWnXNyxoMGR2u4aMNgXxn","type":"message","role":"assistant","model":"claude-3-5-sonnet-20240620","content":[{"type":"text","text":"1"}],"stop_reason":"end_turn","stop_sequence":null,"usage":{"input_tokens":1631,"output_tokens":5}}} | [[0,0],[1920,0],[1920,1080],[0,1080]] |
-    44782513 |           | claude     |             | {"claude":{"id":"msg_01GpoPsNpQ988h4ThWDpfQkp","type":"message","role":"assistant","model":"claude-3-5-sonnet-20240620","content":[{"type":"text","text":"0"}],"stop_reason":"end_turn","stop_sequence":null,"usage":{"input_tokens":1631,"output_tokens":5}}} | [[0,0],[1920,0],[1920,1080],[0,1080]] |
+    id    | parent_id | class_name | identity_id |  extra_data_json  |              coords_json              | track_id
+    ----------+-----------+------------+-------------+-------------------+---------------------------------------+----------
+    44782514 |           | claude     |             | {"claude":"1"}    | [[0,0],[1920,0],[1920,1080],[0,1080]] |
+    44782513 |           | claude     |             | {"claude":"0"}    | [[0,0],[1920,0],[1920,1080],[0,1080]] |
     ```
 
-## 胶囊支持的参数配置
+## Options
 
-目前胶囊支持针对'model', `temperature`和`max_tokens`进行配置，具体说明参考Claude官方说明：<https://docs.anthropic.com/en/api/messages>
+The capsule currently lets you configure `model`, `effort` and `max_tokens`. For details, see the Claude documentation: <https://docs.anthropic.com/en/api/messages>
 
-大模型调用的开销比较大，可以通过`detection_interval`已秒为单位设置调用的时间间隔。该参数默认为0，设置为非0值时，因为只是间隔一定的时间抽一帧检测，在BrainFrame客户端上可能看不到检测框，但数据库中可以看到检测输出。使用命令行工具`brainframe-apps get_zone_statuses`也可以观察到大模型检测输出的检测结果。
+- `model`: defaults to `claude-haiku-5-5` (the cheapest). For harder questions, use `claude-sonnet-5-5` or `claude-opus-5-5`.
+- `effort`: how much the model thinks before it answers. The default is `low` (cheapest, and enough for a True/False answer); the other choices are `medium`, `high`, `xhigh` and `max`. Leave it empty when you use a model that has no such setting (for example Claude Haiku 4.5).
+- `max_tokens`: defaults to 1024. It also covers the model's thinking, so a value that is too small can leave no text in the answer.
+- The current models only accept their default sampling parameters, so there is no `temperature` option any more.
 
-## 遗留问题
+When a call fails (wrong key, network error, no text in the reply), the capsule waits at least 10 seconds before it tries again, so it does not call the API on every frame. With an empty `api_key` it makes no call. A request times out after 60 seconds, and a picture larger than 1568 pixels is shrunk before it is sent.
+
+Calling a large model is expensive, so you can set the interval between calls with `detection_interval`, in seconds (the default is 60). Because the capsule only analyzes one frame per interval, you may not see a detection box in the BrainFrame client, but the output is in the database. You can also see the model's results with the command line tool `brainframe-apps get_zone_statuses`.
+
+## Open issues
 
 1. Need support to take detection name as an option
 1. Need support to setup a limit for cost control: Max number of calls in a minute/hour/day/week/month. 0 is for no limitation
