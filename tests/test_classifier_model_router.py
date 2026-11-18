@@ -82,7 +82,7 @@ def test_the_claude_request():
     assert body["model"] == "claude-haiku-5-5" and body["output_config"] == {"effort": "low"} and body["max_tokens"] == 1024
     assert not {"temperature", "top_p", "top_k"} & set(body)
     image, text = body["messages"][0]["content"]
-    assert image["source"] == {"type": "base64", "media_type": "image/jpeg", "data": "AAAA"} and text["text"].startswith("Does this person")
+    assert image["source"] == {"type": "base64", "media_type": "image/jpeg", "data": "AAAA"} and text["text"].startswith("How many people in the picture are holding a phone?")
     assert "output_config" not in build_request("AAAA", options(effort=""))[2]
 
 

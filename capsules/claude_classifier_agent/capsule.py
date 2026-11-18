@@ -35,8 +35,8 @@ class Capsule(BaseCapsule):
             description ="The classification results will be included in output attributes as True or False",
         ),
         "prompt": TextOption(
-            default = "Does this person in the picture wear a safety hat? Please reply with True or False. Please do not include anything else other than the word True or False",
-            description ="The prompt sent to the service",
+            default = "How many people in the picture are holding a phone? Reply with an Arabic numeral only, for example: 0. Do not add anything else.",
+            description = "The prompt sent to the model together with the whole frame. Ask for a short answer in a fixed format. Examples (copy one): 1) How many people in the picture are holding a phone? Reply with an Arabic numeral only, for example: 0. Do not add anything else. 2) How many people in the picture are wearing a hard hat (safety helmet)? A cap or hood does not count. Reply with an Arabic numeral only, for example: 0. Do not add anything else. 3) How many people in the picture are wearing a high-visibility vest? Reply with an Arabic numeral only, for example: 0. Do not add anything else. 4) Is anyone in the picture lying on the floor? Answer with exactly one word: Yes, No, or Unknown. Do not write anything else.",
         ),
         "detection_interval": IntOption(
             default = 60,

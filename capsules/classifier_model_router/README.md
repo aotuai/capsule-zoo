@@ -21,7 +21,7 @@ In the options, choose the provider, fill in the API key of that provider (`clau
     PROVIDER: "claude"
     CLAUDE API KEY: "sk-an**************AA"
     HTTP PROXY: "http://192.168.31.19:1081"
-    PROMPT: "How many people in this picture wear a yellow safety helmet? Reply with an Arabic numeral, for example: 0. Do not add punctuation or anything else to the reply."
+    PROMPT: "How many people in the picture are holding a phone? Reply with an Arabic numeral only, for example: 0. Do not add anything else."
     ```
 
 ## Viewing the analysis output
@@ -49,6 +49,17 @@ In the options, choose the provider, fill in the API key of that provider (`clau
 - The current models only accept their default sampling parameters, so there is no `temperature` option.
 
 Calling a large model is expensive, so you can set the interval between calls with `detection_interval`, in seconds (the default is 60). The capsule sends nothing new while an earlier request has no answer yet. When a call fails (wrong key, network error, no text in the reply) it waits at least 10 seconds before it tries again; with an empty key for the selected provider it makes no call. A request times out after 60 seconds. Because the capsule only analyzes one frame per interval, you may not see a detection box in the BrainFrame client for long, but the output is in the database. You can also see the model's results with the command line tool `brainframe-apps get_zone_statuses`.
+
+## Example prompts
+
+The default is the first one. They are also listed in the description of the `prompt` option, so you can copy them from the options dialog. The picture is a crop of one person (the answer for a count is then 0 or 1, so the one-word examples fit better).
+
+1. `How many people in the picture are holding a phone? Reply with an Arabic numeral only, for example: 0. Do not add anything else.`
+2. `This is a cropped photo of one person. Is the person wearing a hard hat (safety helmet)? A cap or hood does not count. Answer with exactly one word: Yes, No, or Unknown (use Unknown if the head is not visible or the picture is too unclear to tell). Do not write anything else.`
+3. `This is a cropped photo of one person. Is the person wearing a high-visibility vest? Answer with exactly one word: Yes, No, or Unknown. Do not write anything else.`
+4. `This is a cropped photo of one person. Which best describes the posture: standing, sitting, walking, running, lying down, or unknown? Answer with exactly one of these words. Do not write anything else.`
+
+Ask for a short answer in a fixed format: it is cheaper, and easy to use in alarms and rules. Allow "Unknown" when the answer cannot be seen (for example a head that is cut off), so a guess does not become an alarm.
 
 ## Open issues
 

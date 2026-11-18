@@ -37,8 +37,8 @@ class Capsule(BaseCapsule):
             description ="The model used when the provider is chatgpt. The default is the cheapest current OpenAI model (about US$0.05 per million input tokens).",
         ),
         "prompt": TextOption(
-            default = "Does this person in the picture wear a safety hat? Please reply with True or False. Please do not include anything else other than the word True or False",
-            description ="The prompt sent to the service",
+            default = "How many people in the picture are holding a phone? Reply with an Arabic numeral only, for example: 0. Do not add anything else.",
+            description = "The prompt sent to the model together with the picture of one person (a crop of the frame). Ask for a short answer in a fixed format. Examples (copy one): 1) How many people in the picture are holding a phone? Reply with an Arabic numeral only, for example: 0. Do not add anything else. 2) This is a cropped photo of one person. Is the person wearing a hard hat (safety helmet)? A cap or hood does not count. Answer with exactly one word: Yes, No, or Unknown (use Unknown if the head is not visible or the picture is too unclear to tell). Do not write anything else. 3) This is a cropped photo of one person. Is the person wearing a high-visibility vest? Answer with exactly one word: Yes, No, or Unknown. Do not write anything else. 4) This is a cropped photo of one person. Which best describes the posture: standing, sitting, walking, running, lying down, or unknown? Answer with exactly one of these words. Do not write anything else.",
         ),
         "detection_interval": IntOption(
             default = 60,

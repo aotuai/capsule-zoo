@@ -61,7 +61,7 @@ def test_the_request_has_the_current_shape(run):
     assert body["model"] == "claude-haiku-5-5" and body["output_config"] == {"effort": "low"} and body["max_tokens"] == 1024
     assert not {"temperature", "top_p", "top_k"} & set(body)
     image, text = body["messages"][0]["content"]
-    assert image["source"]["media_type"] == "image/jpeg" and text["text"].startswith("Does this person")
+    assert image["source"]["media_type"] == "image/jpeg" and text["text"].startswith("How many people in the picture are holding a phone?")
 
 
 def test_a_model_without_effort_gets_no_effort(run):

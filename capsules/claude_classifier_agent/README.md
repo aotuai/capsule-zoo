@@ -11,7 +11,7 @@ In the options, fill in the API key, the proxy server used for the request (only
     ```text
     API KEY: "sk-an**************AA"
     HTTP PROXY: "http://192.168.31.19:1081"
-    PROMPT: "How many people in this picture wear a yellow safety helmet? Reply with an Arabic numeral, for example: 0. Do not add punctuation or anything else to the reply."
+    PROMPT: "How many people in the picture are holding a phone? Reply with an Arabic numeral only, for example: 0. Do not add anything else."
     ```
 
 ## Viewing the analysis output
@@ -37,6 +37,17 @@ The capsule currently lets you configure `model`, `effort` and `max_tokens`. For
 When a call fails (wrong key, network error, no text in the reply), the capsule waits at least 10 seconds before it tries again, so it does not call the API on every frame. With an empty `api_key` it makes no call. A request times out after 60 seconds, and a picture larger than 1568 pixels is shrunk before it is sent.
 
 Calling a large model is expensive, so you can set the interval between calls with `detection_interval`, in seconds (the default is 60). Because the capsule only analyzes one frame per interval, you may not see a detection box in the BrainFrame client, but the output is in the database. You can also see the model's results with the command line tool `brainframe-apps get_zone_statuses`.
+
+## Example prompts
+
+The default is the first one. They are also listed in the description of the `prompt` option, so you can copy them from the options dialog. The picture is the whole frame, so these count people.
+
+1. `How many people in the picture are holding a phone? Reply with an Arabic numeral only, for example: 0. Do not add anything else.`
+2. `How many people in the picture are wearing a hard hat (safety helmet)? A cap or hood does not count. Reply with an Arabic numeral only, for example: 0. Do not add anything else.`
+3. `How many people in the picture are wearing a high-visibility vest? Reply with an Arabic numeral only, for example: 0. Do not add anything else.`
+4. `Is anyone in the picture lying on the floor? Answer with exactly one word: Yes, No, or Unknown. Do not write anything else.`
+
+Ask for a short answer in a fixed format: it is cheaper, and easy to use in alarms and rules. Allow "Unknown" when the answer cannot be seen (for example a head that is cut off), so a guess does not become an alarm.
 
 ## Open issues
 
