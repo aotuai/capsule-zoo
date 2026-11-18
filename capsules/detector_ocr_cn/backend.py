@@ -74,16 +74,16 @@ class Backend(BaseBackend):
                 #     detections.extend(state.get_last_detections())
                 #     return detections
 
-            # Setup OCR-检测-识别 System
+            # Setup OCR detection-recognition System
             ocr_sys = OcrDetRec(self.onet_det_session, self.onet_rec_session, self.dict_character)
 
-            # OCR-检测-识别
+            # OCR detection-recognition
             ocr_sys.ocr_det_rec_img(frame)
 
-            # 得到检测框
+            # Get the detection boxes
             dt_boxes = ocr_sys.get_boxes()
 
-            # 识别 results: 单纯的识别结果，results_info: 识别结果+置信度
+            # Recognition. results: the recognized text only, results_info: the recognized text and its confidence
             results, results_info = ocr_sys.recognition_img(dt_boxes)
 
             raw_detections = self.create_ocr_text_detections(dt_boxes, results, is_cell, (cell_x, cell_y))

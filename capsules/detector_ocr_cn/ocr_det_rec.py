@@ -7,7 +7,7 @@ import pyclipper
 from shapely.geometry import Polygon
 
 
-# PalldeOCR 检测模块 需要用到的图片预处理类
+# Image preprocessing classes used by the PaddleOCR detection module
 class NormalizeImage(object):
     """ normalize image such as substract mean, divide std
     """
@@ -117,7 +117,7 @@ class DetResizeForTest(object):
         # return img, np.array([h, w])
         return img, [ratio_h, ratio_w]
 
-### 检测结果后处理过程（得到检测框）
+### Post-processing of the detection result (gets the detection boxes)
 class DBPostProcess(object):
     """
     The post process for Differentiable Binarization (DB).
@@ -235,7 +235,7 @@ class DBPostProcess(object):
 
         boxes_batch = []
         for batch_index in range(pred.shape[0]):
-            src_h, src_w, ratio_h, ratio_w = shape_list[batch_index]               # 图片缩放比例
+            src_h, src_w, ratio_h, ratio_w = shape_list[batch_index]               # image scale ratios
             if self.dilation_kernel is not None:
                 mask = cv2.dilate(
                     np.array(segmentation[batch_index]).astype(np.uint8),
@@ -263,7 +263,7 @@ def get_character_dict(character_dict_path, character_type='ch', use_space_char=
     return dict_character
 
 
-## 根据推理结果解码识别结果
+## Decode the recognition result from the inference result
 class ProcessPred(object):
     def __init__(self, dict_character):
         self.dict_character = dict_character
@@ -328,7 +328,7 @@ class OcrDetRec(object):
         self.img = image
         self.infer_before_process_op, self.det_re_process_op = self.get_process()
 
-    ## 图片预处理过程
+    ## Image preprocessing
     def transform(self, data, ops=None):
         """ transform """
         if ops is None:
@@ -359,7 +359,7 @@ class OcrDetRec(object):
             ops.append(op)
         return ops
 
-    ### 检测框的后处理
+    ### Post-processing of the detection boxes
     def order_points_clockwise(self, pts):
         """
         reference from: https://github.com/jrosebr1/imutils/blob/master/imutils/perspective.py
@@ -404,7 +404,7 @@ class OcrDetRec(object):
         dt_boxes = np.array(dt_boxes_new)
         return dt_boxes
 
-    ### 定义图片前处理过程，和检测结果后处理过程
+    ### Define the image preprocessing and the detection result post-processing
     def get_process(self):
         det_db_thresh = 0.3
         det_db_box_thresh = 0.6  #0.5
@@ -456,7 +456,7 @@ class OcrDetRec(object):
                 _boxes[i + 1] = tmp
         return _boxes
 
-    ### 图像输入预处理
+    ### Preprocessing of the image input
     def resize_norm_img(self, img, max_wh_ratio):
         #imgC, imgH, imgW = [int(v) for v in "3, 48, 320".split(",")]
         imgC, imgH, imgW = self.rec_image_shape
@@ -478,7 +478,7 @@ class OcrDetRec(object):
         padding_im[:, :, 0:resized_w] = resized_image
         return padding_im
 
-    ## 推理检测图片中的部分
+    ## Run inference on the parts of the detection image
     def get_boxes(self):
         img_ori = self.img
         img_part = img_ori.copy()
@@ -496,7 +496,7 @@ class OcrDetRec(object):
         dt_boxes_part = self.sorted_boxes(dt_boxes_part)
         return dt_boxes_part
 
-    ### 根据bounding box得到单元格图片
+    ### Get the cell images from the bounding boxes
     def get_rotate_crop_image(self, img, points):
         img_crop_width = int(
             max(
@@ -520,7 +520,7 @@ class OcrDetRec(object):
             dst_img = np.rot90(dst_img)
         return dst_img
 
-    ### 单张图片推理
+    ### Inference on a single image
     def get_img_res(self, onnx_model, img, process_op):
         imgC, imgH, imgW = self.rec_image_shape
         max_wh_ratio = imgW / imgH
@@ -537,15 +537,15 @@ class OcrDetRec(object):
     def recognition_img(self, dt_boxes):
         img_ori = self.img
         img = img_ori.copy()
-        ### 识别过程
-        ## 根据bndbox得到小图片
+        ### Recognition
+        ## Get the small images from the bndbox
         img_list = []
         for box in dt_boxes:
             tmp_box = copy.deepcopy(box)
             img_crop = self.get_rotate_crop_image(img, tmp_box)
             img_list.append(img_crop)
 
-        ## 识别小图片
+        ## Recognize the small images
         results = []
         results_info = []
         for pic in img_list:

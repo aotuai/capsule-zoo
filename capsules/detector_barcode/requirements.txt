@@ -1,11 +1,11 @@
-# detector_qrcode.py 依赖
+# Dependencies of detector_qrcode.py
 # Python ≥ 3.8
 
-# 图像处理
+# Image processing
 opencv-python>=4.5
 numpy>=1.19.5
 
-# 解码引擎（至少安装一个）
-#pyrxing>=0.3              # 主引擎（推荐）,因brainframe os 使用python 3.9, 无法使用pyrxing (python>=3.11)
-pyzbar>=0.1.9             # 备选引擎
-Pillow>=8.0               # pyzbar 路径需要 PIL 做图像转换
+# Decoding engines (install at least one)
+#pyrxing>=0.3              # main engine (recommended); BrainFrame OS uses Python 3.9, so pyrxing (needs Python >= 3.11) cannot be used
+pyzbar>=0.1.9             # fallback engine
+Pillow>=8.0               # the pyzbar path needs PIL for image conversion

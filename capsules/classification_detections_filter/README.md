@@ -1,29 +1,29 @@
-# classification_detections_filter 胶囊简介
+# classification_detections_filter capsule
 
-## 概述
+## Overview
 
-`classification_detections_filter`胶囊对分类胶囊检测到的结果进行过滤，满足过滤条件的detection 将输出filter_confirmed。
+The `classification_detections_filter` capsule filters the results detected by a classifier capsule. A detection that meets the filter conditions is output as filter_confirmed.
 
-## 胶囊支持的参数配置
+## Options
 
-1. class_name: 需要过滤的class_name， string type, e.g.: "person"
-2. attributes_category: 需要过滤的attributes属性里的key， string type, e.g.: "behavior"
-3. attributes_values: 需要过滤的attributes属性里的values， list json format string, e.g.: '["drinking", "phoning", "smoking"]'
-4. time_window_duration: 过滤器的时间窗，单位: 秒
-5. true_counter: 在时间窗口内，需要累计检测出 value 为 true 的最大值
+1. class_name: the class_name to filter, string type, e.g.: "person"
+2. attributes_category: the key in the attributes to filter, string type, e.g.: "behavior"
+3. attributes_values: the values in the attributes to filter, list json format string, e.g.: '["drinking", "phoning", "smoking"]'
+4. time_window_duration: the time window of the filter, in seconds
+5. true_counter: the number of detections whose value is true that must add up within the time window
 
-## 胶囊过滤方式
-1. 时间窗口起点设置为当前时间，每个value的counter 清零
-2. 在给定的时间窗内，指定value 为true 的检测数达到设定的 true_counter 时，输出filter_confirmed 检测结果，返回1；
-3. 当前时间窗结束时，若所有values为true的检测数都未达到 true_counter，返回1；
+## How the capsule filters
+1. The start of the time window is set to the current time, and the counter of every value is reset to zero
+2. Within the given time window, when the number of detections whose value is true reaches the set true_counter, the filter_confirmed detection is output and 1 is returned;
+3. When the current time window ends, if the number of detections whose value is true has not reached true_counter for any of the values, 1 is returned;
 
-## 胶囊输出结果
-1. 时间窗口内未达到设定检测数时，输出[]
-2. 时间窗口内达到设定检测数时，输出[detections]
+## Output
+1. When the set number of detections is not reached within the time window, the output is []
+2. When the set number of detections is reached within the time window, the output is [detections]
    "class_name":"filter_confirmed"
    "extra_data":{"filter_confirmed":{attributes_category:attributes_value}}
 
-3. [detections] 举例:
+3. Example of [detections]:
    [{"class_name":"filter_confirmed",
     "coords":[[371,135],[2252,135],[2252,1383],[371,1383]],
     "children":[],"attributes":{},

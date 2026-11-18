@@ -122,15 +122,15 @@ def get_characters(char_file):
         return ''.join(line.strip('\n') for line in f)
 
 def check_black_backgroud(gray_image):
-    # 二值化图像
+    # Binarize the image
     _, binary_image = cv2.threshold(gray_image, 128, 255, cv2.THRESH_BINARY)
 
-    # 统计黑白像素数量
+    # Count the black and white pixels
     black_pixels = np.sum(gray_image == 0)
     white_pixels = np.sum(gray_image == 255)
 
-    # 判断背景颜色
+    # Decide the background color
     if black_pixels > white_pixels:
-        return True  # 黑底
+        return True  # black background
     else:
-        return False  # 白底
+        return False  # white background

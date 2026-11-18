@@ -12,7 +12,7 @@ def bold_strokes(gray_image, black_groud, bold):
 
     if bold:
         kernel = np.ones((3, 3), dtype=np.uint8)
-        binary = cv2.erode(binary, kernel, iterations=1)  # 1:迭代次数，也就是执行几次膨胀操作
+        binary = cv2.erode(binary, kernel, iterations=1)  # 1: the number of iterations, i.e. how many times the dilation is applied
     return binary
 
 def cv_show(img):
@@ -20,13 +20,13 @@ def cv_show(img):
     cv2.waitKey(0)
     cv2.destroyAllWindows()
 
-'''水平投影'''
+'''Horizontal projection'''
 def getHProjection(image, image_pad):
     (h, w) = image.shape
-    # 长度与图像高度一致的数组
+    # An array as long as the image height
     #h_ = [0] * h
     first_y = end_y = -1
-    # 循环统计每一行白色像素的个数
+    # Loop over the rows and count the white pixels in each
     for y in range(h):
         for x in range(w):
             if image[y, x] == 0:
@@ -53,7 +53,7 @@ def getHProjection(image, image_pad):
 def getVProjection(image, image_pad):
     (h, w) = image.shape
     first_x = end_x = -1
-    # 循环统计每一列白色像素的个数
+    # Loop over the columns and count the white pixels in each
     for x in range(w):
         for y in range(h):
             if image[y, x] == 0:
@@ -77,9 +77,9 @@ def getVProjection(image, image_pad):
 
 
 def get_handwriten_text_area_image(gray_image, image_pad, black_groud):
-    # 图像灰度化
+    # Convert the image to grayscale
     #img = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    # 将图片二值化 & bold strokes
+    # Binarize the image & bold strokes
     #img = bold_strokes(img)
     # ret, binary = cv2.threshold(gray_image, 210, 255, cv2.THRESH_BINARY)
     if black_groud:
@@ -91,13 +91,13 @@ def get_handwriten_text_area_image(gray_image, image_pad, black_groud):
     (h, w) = binary.shape
     #print(f"h={h},w={w}")
 
-    # 水平投影
+    # Horizontal projection
     y1, y2 = getHProjection(binary, image_pad)
     '''
     start = 0
     H_Start = []
     H_End = []
-    # 根据水平投影获取垂直分割位置
+    # Get the vertical split positions from the horizontal projection
     for i in range(len(H)):
         if H[i] > 0 and start == 0:
             H_Start.append(i)
@@ -107,16 +107,16 @@ def get_handwriten_text_area_image(gray_image, image_pad, black_groud):
             start = 0
 
     img = binary
-    # 分割行，分割之后再进行列分割并保存分割位置
+    # Split the rows; after that, split the columns and save the split positions
     for i in range(len(H_Start)):
-        # 获取行图像
+        # Get the row image
         if H_Start[i] >= image_pad:
             H_Start[i] -= image_pad
         if H_End[i] < h-image_pad:
             H_End[i] += image_pad
         #cropImg = img[H_Start[i]:H_End[i], 0:w]
     '''
-        # 对行图像进行垂直投影
+        # Project the row image vertically
     x1, x2 = getVProjection(binary[y1:y2, 0:w], image_pad)
     img = gray_image[y1:y2, x1:x2]
     #cv_show(img)
@@ -133,7 +133,7 @@ if __name__ == "__main__":
             if not os.path.isfile(file):
                 continue
 
-            # 读入原始图像
+            # Read the original image
             origineImage = cv2.imread(file)
             img = get_handwriten_text_area_image(origineImage, 20)
             #cv_show(img)
@@ -147,6 +147,6 @@ if __name__ == "__main__":
 
             cv2.imwrite(save_path, img)
 
-    # 图像灰度化
+    # Convert the image to grayscale
     # image = cv2.imread('test.jpg',0)
 
