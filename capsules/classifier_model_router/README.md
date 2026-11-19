@@ -26,13 +26,16 @@ In the options, choose the provider, fill in the API key of that provider (`clau
 
 ## Viewing the analysis output
 
-1. Run this command in the database container to query the latest rows of the detection table: `docker exec -it brainframe-database-1 psql -U user -d brainframe -c "select * from detection where class_name = 'classification' order by id desc;"` For example:
+The answer is added to the `extra_data` of the person it describes, as `model_router`: the capsule has no detections of its own, and another capsule can read the key `model_router` from the person.
+In the BrainFrame web client, switch on **Extra Data** in the stream's display options, and the person's label shows `model_router: <answer>`.
+It stays on the person (also when the person moves a little) until the next answer arrives or `detection_interval` seconds have passed.
+A person without a label was not asked (yet), or the answer has expired: that is *unknown*, not 0. Only people who are big enough (`min_person_pixels`), among the biggest `max_detections_per_frame`, are sent, and only once per `detection_interval`; a `0` on a person is the model's own answer.
+The answer is also in the `extra_data_json` of the person in the detection table and in the BrainFrame API, for example:
 
     ```txt
-    id    | parent_id | class_name     | identity_id |       extra_data_json        |                coords_json                | track_id
-    ----------+-----------+----------------+-------------+------------------------------+-------------------------------------------+----------
-    44782433 |           | classification |             | {"classification":"1"}       | [[100,100],[300,100],[300,500],[100,500]] |
-    44782432 |           | classification |             | {"classification":"2"}       | [[620,90],[800,90],[800,480],[620,480]]   |
+    class_name | extra_data_json
+    -----------+----------------------------------------
+    person     | {"confidence": 0.86, "model_router": "1"}
     ```
 
 ## Options

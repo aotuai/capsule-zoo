@@ -5,9 +5,9 @@ from .stream_state import StreamState
 
 class Capsule(BaseCapsule):
     name = "classifier_model_router"
-    description = "v0.1. The capsule takes the people detected by other capsules, cuts each one out of the frame and sends " \
-                  "it with a prompt to a cloud AI model for classification, and publishes the answers to BrainFrame API " \
-                  "or for other capsules to consume and generate fused results. The provider option selects the model: " \
+    description = "v0.5. The capsule takes the people detected by other capsules, cuts each one out of the frame and sends " \
+                  "it with a prompt to a cloud AI model for classification, and adds the answer to the extra data " \
+                  "(model_router) of that person, for BrainFrame API or for other capsules to consume and generate fused results. The provider option selects the model: " \
                   "Claude (Anthropic API) or ChatGPT (OpenAI API)."
     version = 1
     stream_state = StreamState
@@ -18,8 +18,8 @@ class Capsule(BaseCapsule):
     )
     output_type = NodeDescription(
         size=NodeDescription.Size.ALL,
-        detections=["classification"],
-        extra_data=["classification"]
+        detections=["person"],
+        extra_data=["model_router"]
     )
     backend_loader = lambda capsule_files, device: Backend()
     options = {

@@ -1,4 +1,4 @@
-from vcap import BaseBackend, DETECTION_NODE_TYPE, OPTION_TYPE, DetectionNode, rect_to_coords
+from vcap import BaseBackend, DETECTION_NODE_TYPE, OPTION_TYPE, DetectionNode
 from typing import Dict, List, Optional, Tuple
 from concurrent.futures import ThreadPoolExecutor
 import threading
@@ -13,6 +13,7 @@ from .stream_state import StreamState
 
 URL = "https://api.openai.com/v1/chat/completions"
 REQUEST_TIMEOUT_SECONDS = 60  # a worker thread (and the shutdown of the capsule) must never wait for the API forever
+EXTRA_DATA_KEY = "chatgpt"  # the answer is in the extra data of the person under this key
 RETRY_DELAY_SECONDS = 10  # after a failed call, wait at least this long before the next one
 MAX_WORKERS = 4
 # With image detail "low" the API looks at a 512 x 512 picture anyway; a larger crop only costs upload time
@@ -92,7 +93,7 @@ class Backend(BaseBackend):
         self.executor.shutdown(wait=True)
         logging.debug("chatgpt_classifier_agent: thread pool shut down")
 
-    def chatgpt_classifier_agent(self, jpg_as_base64: str, options: Dict[str, OPTION_TYPE], coords, state: StreamState, idx):
+    def chatgpt_classifier_agent(self, jpg_as_base64: str, options: Dict[str, OPTION_TYPE], box, state: StreamState, idx):
         """Runs in a worker thread: one request for one person."""
         logging.debug(f"chatgpt_classifier_agent thread {idx} running")
         try:
@@ -104,7 +105,7 @@ class Backend(BaseBackend):
             if response.status_code == 200:
                 text = reply_text(response.json())
                 if text:
-                    state.set_detection_response(DetectionNode(name="chatgpt", coords=coords, extra_data={"chatgpt": text}))
+                    state.add_answer(box, text, EXTRA_DATA_KEY)
                 else:
                     logging.error(f"chatgpt_classifier_agent thread {idx}: the reply has no text "
                                   "(raise max_tokens, or lower reasoning_effort)")
@@ -118,6 +119,11 @@ class Backend(BaseBackend):
         finally:
             state.request_finished()
         logging.debug(f"chatgpt_classifier_agent thread {idx} end")
+
+    @staticmethod
+    def _hold(options: Dict[str, OPTION_TYPE]) -> float:
+        """How long an answer stays visible: until the next detection is due."""
+        return max(options["detection_interval"], RETRY_DELAY_SECONDS)
 
     @staticmethod
     def _wait_after_failure(state: StreamState, options: Dict[str, OPTION_TYPE]) -> None:
@@ -138,15 +144,17 @@ class Backend(BaseBackend):
                       detection_node: DETECTION_NODE_TYPE,
                       options: Dict[str, OPTION_TYPE],
                       state: StreamState) -> DETECTION_NODE_TYPE:
+        # The answers go into the extra data of the people they were asked about; the capsule has no detections of its own
+        state.annotate(detection_node, self._hold(options))
         if (time.time() - state.get_last_detection_timestamp()) < options["detection_interval"]:
-            return state.get_detection_response()
+            return []
         # No new requests while the last ones have no answer yet: a slow API must not pile up calls
         if state.get_pending() > 0 or not detection_node or options["current_count"] <= 0:
-            return state.get_detection_response()
+            return []
         if not str(options["api_key"]).strip():
             logging.warning("chatgpt_classifier_agent: fill in the api_key option to use this capsule")
             self._wait_after_failure(state, options)
-            return state.get_detection_response()
+            return []
 
         try:
             detail = str(options["image_detail"]).strip() or "low"
@@ -167,7 +175,7 @@ class Backend(BaseBackend):
                 state.request_started()
                 try:
                     self.executor.submit(self.chatgpt_classifier_agent, jpg_as_base64, options,
-                                         rect_to_coords([x1, y1, x2, y2]), state, self.submit_num)
+                                         [x1, y1, x2, y2], state, self.submit_num)
                 except Exception:
                     state.request_finished()
                     raise
@@ -175,4 +183,4 @@ class Backend(BaseBackend):
         except Exception as e:
             logging.error(f"chatgpt_classifier_agent: {e}")
 
-        return state.get_detection_response()
+        return []

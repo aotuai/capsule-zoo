@@ -107,11 +107,13 @@ def test_each_reply_format_is_read_by_its_own_provider():
     ("chatgpt", chatgpt_answer("True"), "https://api.openai.com/v1/chat/completions"),
 ])
 def test_the_selected_provider_is_called_and_the_answer_is_on_the_box_of_the_person(provider, answer, url):
-    result, calls, _ = run(Reply(body=answer), provider=provider)
+    people = [person(100, 100, 300, 500)]
+    result, calls, state = run(Reply(body=answer), people=people, provider=provider)
+    state.annotate(people, 60)  # the next frame
     (call,) = calls
     assert call.args[0] == url and call.kwargs["timeout"] == 60
-    assert len(result) == 1 and result[0].class_name == "classification" and result[0].extra_data == {"classification": "True"}
-    assert result[0].coords == rect_to_coords([100, 100, 300, 500])
+    assert result == []  # the capsule has no detections of its own: the answer goes into the person
+    assert people[0].class_name == "person" and people[0].extra_data == {"model_router": "True"}
 
 
 def test_an_unknown_provider_or_a_missing_key_of_the_selected_provider_makes_no_call():
@@ -141,7 +143,8 @@ def test_the_biggest_people_up_to_the_limit_are_sent_and_the_quota_counts_calls(
     with mock.patch.object(backend_module.requests, "post", side_effect=lambda *a, **k: sent.append(k["json"]) or Reply(body=claude_answer("1"))):
         results = [backend.process_frame(np.zeros((1080, 1920, 3), np.uint8), people, opts, state) for _ in range(3)]
     assert len(sent) == 3 and opts["current_count"] == 0  # 3 calls, not 3 frames
-    assert [d.coords for d in results[0]] == [rect_to_coords([500, 0, 800, 300]), rect_to_coords([200, 0, 400, 200])]
+    assert state.annotate(people, 60) == 2  # the two biggest people got their answers
+    assert [p.extra_data for p in people] == [{}, {"model_router": "1"}, {"model_router": "1"}]
 
 
 def test_a_large_crop_is_sent_smaller():
@@ -160,3 +163,15 @@ def test_nothing_new_is_sent_while_an_answer_is_missing_and_the_interval_is_kept
     assert run(Reply(body=claude_answer("x")), state=state, detection_interval=0)[1] == []
     _, first, state2 = run(Reply(body=claude_answer("x")))
     assert len(first) == 1 and run(Reply(body=claude_answer("x")), state=state2)[1] == []
+
+
+def test_an_answer_stays_on_its_person_who_may_move_until_it_is_old():
+    people = [person(100, 100, 300, 500), person(900, 100, 1100, 500)]
+    _, _, state = run(Reply(body=claude_answer("1")), people=people[:1])
+    moved = [person(120, 110, 320, 510), person(900, 100, 1100, 500)]  # the first person moved a little
+    assert state.annotate(moved, 60) == 1
+    assert moved[0].extra_data == {"model_router": "1"} and moved[1].extra_data == {}
+    far = [person(1500, 100, 1700, 500)]  # nobody is there any more: the answer is not given to someone else
+    assert state.annotate(far, 60) == 0 and far[0].extra_data == {}
+    state.answers[0]["at"] -= 10000
+    assert state.annotate(moved, 60) == 0  # too old

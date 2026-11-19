@@ -84,12 +84,14 @@ def test_an_older_model_keeps_the_old_parameters():
 
 
 def test_the_request_goes_to_the_api_with_a_timeout(run):
-    result, calls, _, _ = run(Reply(body=answer("True")))
+    people = [person(100, 100, 300, 500)]
+    result, calls, state, _ = run(Reply(body=answer("True")), people=people)
     (call,) = calls
     assert call.args[0] == "https://api.openai.com/v1/chat/completions" and call.kwargs["timeout"] == 60
     assert call.kwargs["headers"]["Authorization"] == "Bearer sk-test" and call.kwargs["proxies"] is None
-    assert len(result) == 1 and result[0].extra_data == {"chatgpt": "True"}
-    assert result[0].coords == rect_to_coords([100, 100, 300, 500])  # the box of the person, in frame pixels
+    assert result == []  # the capsule has no detections of its own
+    state.annotate(people, 60)  # the next frame: the answer goes into the person
+    assert people[0].extra_data == {"chatgpt": "True"}
 
 
 def test_two_people_with_the_same_box_size_are_both_sent():
@@ -105,8 +107,9 @@ def test_boxes_may_be_dicts_and_are_clipped_to_the_frame():
 
 def test_only_the_biggest_people_up_to_the_limit_are_sent(run):
     people = [person(0, 0, 100, 100), person(200, 0, 400, 200), person(500, 0, 800, 300)]
-    result, calls, _, _ = run(Reply(body=answer("1")), people=people, max_detections_per_frame=2)
-    assert len(calls) == 2 and [d.coords for d in result] == [rect_to_coords([500, 0, 800, 300]), rect_to_coords([200, 0, 400, 200])]
+    _, calls, state, _ = run(Reply(body=answer("1")), people=people, max_detections_per_frame=2)
+    state.annotate(people, 60)
+    assert len(calls) == 2 and [p.extra_data for p in people] == [{}, {"chatgpt": "1"}, {"chatgpt": "1"}]
 
 
 def test_a_large_crop_is_sent_smaller(run):
@@ -169,7 +172,12 @@ def test_the_detection_interval_limits_the_calls(run):
     assert len(first) == 1 and calls == []
 
 
-def test_the_answers_are_returned_once():
+def test_an_answer_stays_on_its_person_who_may_move_until_it_is_old():
     state = StreamState()
-    state.set_detection_response("a")
-    assert state.get_detection_response() == ["a"] and state.get_detection_response() == []
+    state.add_answer([100, 100, 300, 500], "1", "chatgpt")
+    moved = [person(120, 110, 320, 510)]
+    assert state.annotate(moved, 60) == 1 and moved[0].extra_data == {"chatgpt": "1"}
+    far = [person(1500, 100, 1700, 500)]
+    assert state.annotate(far, 60) == 0 and far[0].extra_data == {}
+    state.answers[0]["at"] -= 10000
+    assert state.annotate(moved, 60) == 0

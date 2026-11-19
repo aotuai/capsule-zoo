@@ -1,4 +1,4 @@
-from vcap import BaseBackend, DETECTION_NODE_TYPE, OPTION_TYPE, DetectionNode, rect_to_coords
+from vcap import BaseBackend, DETECTION_NODE_TYPE, OPTION_TYPE, DetectionNode
 from typing import Dict, List, Tuple
 from concurrent.futures import ThreadPoolExecutor
 import threading
@@ -18,6 +18,7 @@ DEFAULT_MODELS = {"claude": "claude-haiku-5-5", "chatgpt": "gpt-5-nano"}
 PROVIDER_ALIASES = {"claude": "claude", "anthropic": "claude", "chatgpt": "chatgpt", "openai": "chatgpt"}
 REQUEST_TIMEOUT_SECONDS = 60  # a worker thread (and the shutdown of the capsule) must never wait for the API forever
 RETRY_DELAY_SECONDS = 10  # after a failed call, wait at least this long before the next one
+EXTRA_DATA_KEY = "model_router"  # the answer is in the extra data of the person under this key
 MAX_WORKERS = 4
 # With image detail "low" the OpenAI API looks at a 512 x 512 picture anyway; a larger crop only costs upload time
 MAX_CROP_EDGE = {"low": 512, "high": 1024, "auto": 1024}
@@ -125,7 +126,7 @@ class Backend(BaseBackend):
         self.executor.shutdown(wait=True)
         logging.debug("classifier_model_router: thread pool shut down")
 
-    def ask_model(self, jpg_as_base64: str, options: Dict[str, OPTION_TYPE], coords, state: StreamState, idx):
+    def ask_model(self, jpg_as_base64: str, options: Dict[str, OPTION_TYPE], box, state: StreamState, idx):
         """Runs in a worker thread: one request for one person."""
         logging.debug(f"classifier_model_router thread {idx} running")
         try:
@@ -137,8 +138,7 @@ class Backend(BaseBackend):
             if response.status_code == 200:
                 text = reply_text(provider, response.json())
                 if text:
-                    state.set_detection_response(
-                        DetectionNode(name="classification", coords=coords, extra_data={"classification": text}))
+                    state.add_answer(box, text, EXTRA_DATA_KEY)
                 else:
                     logging.error(f"classifier_model_router thread {idx}: the reply has no text "
                                   "(raise max_tokens, or lower effort)")
@@ -152,6 +152,11 @@ class Backend(BaseBackend):
         finally:
             state.request_finished()
         logging.debug(f"classifier_model_router thread {idx} end")
+
+    @staticmethod
+    def _hold(options: Dict[str, OPTION_TYPE]) -> float:
+        """How long an answer stays visible: until the next detection is due."""
+        return max(options["detection_interval"], RETRY_DELAY_SECONDS)
 
     @staticmethod
     def _wait_after_failure(state: StreamState, options: Dict[str, OPTION_TYPE]) -> None:
@@ -172,21 +177,23 @@ class Backend(BaseBackend):
                       detection_node: DETECTION_NODE_TYPE,
                       options: Dict[str, OPTION_TYPE],
                       state: StreamState) -> DETECTION_NODE_TYPE:
+        # The answers go into the extra data of the people they were asked about; the capsule has no detections of its own
+        state.annotate(detection_node, self._hold(options))
         if (time.time() - state.get_last_detection_timestamp()) < options["detection_interval"]:
-            return state.get_detection_response()
+            return []
         # No new requests while the last ones have no answer yet: a slow API must not pile up calls
         if state.get_pending() > 0 or not detection_node or options["current_count"] <= 0:
-            return state.get_detection_response()
+            return []
         try:
             provider_of(options)
         except ValueError as e:
             logging.warning(f"classifier_model_router: {e}")
             self._wait_after_failure(state, options)
-            return state.get_detection_response()
+            return []
         if not api_key_of(options):
             logging.warning(f"classifier_model_router: fill in the {provider_of(options)}_api_key option to use this capsule")
             self._wait_after_failure(state, options)
-            return state.get_detection_response()
+            return []
 
         try:
             detail = str(options["image_detail"]).strip() or "low"
@@ -207,7 +214,7 @@ class Backend(BaseBackend):
                 state.request_started()
                 try:
                     self.executor.submit(self.ask_model, jpg_as_base64, options,
-                                         rect_to_coords([x1, y1, x2, y2]), state, self.submit_num)
+                                         [x1, y1, x2, y2], state, self.submit_num)
                 except Exception:
                     state.request_finished()
                     raise
@@ -215,4 +222,4 @@ class Backend(BaseBackend):
         except Exception as e:
             logging.error(f"classifier_model_router: {e}")
 
-        return state.get_detection_response()
+        return []

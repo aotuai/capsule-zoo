@@ -4,8 +4,8 @@ from .stream_state import StreamState
 
 class Capsule(BaseCapsule):
     name = "chatgpt_classifier_agent"
-    description = "v0.4 The capsule takes detections from other capsules, and send a prompt request " \
-                  "to OpenAI API for classification and publish the answers to BrainFrame API or for other "\
+    description = "v0.8 The capsule takes detections from other capsules, and send a prompt request " \
+                  "to OpenAI API for classification and add the answer to the extra data (chatgpt) of that person, for BrainFrame API or for other "\
                   "capsules to consume and generate fused results."
     version = 1
     stream_state = StreamState
@@ -16,7 +16,7 @@ class Capsule(BaseCapsule):
     )
     output_type = NodeDescription(
         size=NodeDescription.Size.ALL,
-        detections=["chatgpt"],
+        detections=["person"],
         extra_data=["chatgpt"]
     )
     backend_loader = lambda capsule_files, device: Backend()
