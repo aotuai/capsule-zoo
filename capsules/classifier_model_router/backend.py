@@ -30,6 +30,8 @@ DEFAULT_MODELS = {"claude": "claude-haiku-5-5", "chatgpt": "gpt-5-nano", "gemini
 PROVIDER_ALIASES = {"claude": "claude", "anthropic": "claude", "chatgpt": "chatgpt", "openai": "chatgpt",
                     "gemini": "gemini", "google": "gemini", "qwen": "qwen", "alibaba": "qwen", "glm": "glm", "zhipu": "glm",
                     "deepseek": "deepseek", "custom": "custom"}
+# The providers whose model_override option is not shown (see the show_when tag in capsule.py), so it is not used either
+NO_OVERRIDE_PROVIDERS = {"claude", "chatgpt", "gemini", "qwen", "glm", "deepseek"}  # only custom uses it
 PROVIDER_NAMES = "claude, chatgpt, gemini, qwen, glm, deepseek or custom"
 REQUEST_TIMEOUT_SECONDS = 60  # a worker thread (and the shutdown of the capsule) must never wait for the API forever
 RETRY_DELAY_SECONDS = 10  # after a failed call, wait at least this long before the next one
@@ -51,9 +53,12 @@ def provider_of(options: Dict[str, OPTION_TYPE]) -> str:
 
 
 def model_of(options: Dict[str, OPTION_TYPE]) -> str:
-    """The model option of the selected provider; the default model of the provider when it was left empty."""
+    """The model_override option when it is filled in (only for the custom provider: the options window hides it for the others,
+    where only the drop-down list counts); else the model option of the selected provider (a drop-down list); else
+    the default model of the provider."""
     provider = provider_of(options)
-    return str(options[f"{provider}_model"]).strip() or DEFAULT_MODELS[provider]
+    override = "" if provider in NO_OVERRIDE_PROVIDERS else str(options.get("model_override", "")).strip()
+    return override or str(options[f"{provider}_model"]).strip() or DEFAULT_MODELS[provider]
 
 
 def api_key_of(options: Dict[str, OPTION_TYPE]) -> str:
@@ -76,10 +81,17 @@ def is_reasoning_model(model: str) -> bool:
     return model.strip().lower().startswith(("gpt-5", "o1", "o3", "o4"))
 
 
+def effort_of(options: Dict[str, OPTION_TYPE], provider: str) -> str:
+    """How much the model thinks, from the effort option of the provider; empty (no setting sent) for off, or for a
+    provider that has no such option."""
+    value = str(options.get(f"{provider}_effort", "")).strip()
+    return "" if value.lower() in ("off", "none") else value
+
+
 def build_request(jpg_as_base64: str, options: Dict[str, OPTION_TYPE]) -> Tuple[str, dict, dict]:
     """(url, headers, body) of the request for the selected provider."""
     provider, model = provider_of(options), model_of(options)
-    effort = str(options["effort"]).strip()
+    effort = effort_of(options, provider)
     key = api_key_of(options)
     if provider == "claude":
         headers = {"Content-Type": "application/json", "x-api-key": key, "anthropic-version": "2023-06-01"}
@@ -152,8 +164,15 @@ def reply_text(provider: str, body: dict) -> str:
     return str((choices[0].get("message") or {}).get("content") or "").strip()
 
 
+def selected_detections(detection_node, options: Dict[str, OPTION_TYPE]) -> list:
+    """The detections whose class is named in the input_classes option; with the option empty, all of them."""
+    wanted = {name.strip().lower() for name in str(options.get("input_classes", "")).replace("\n", ",").split(",") if name.strip()}
+    return [det for det in (detection_node or [])
+            if not wanted or str(det["class_name"] if isinstance(det, dict) else det.class_name).lower() in wanted]
+
+
 def person_boxes(detection_node, min_pixels: int, frame_shape) -> List[List[int]]:
-    """The boxes [x1, y1, x2, y2] of the people that are big enough, the biggest first, clipped to the frame."""
+    """The boxes [x1, y1, x2, y2] of the detections that are big enough, the biggest first, clipped to the frame."""
     frame_h, frame_w = frame_shape[:2]
     found: List[Tuple[int, List[int]]] = []
     for det in detection_node:
@@ -210,33 +229,35 @@ class Backend(BaseBackend):
     @staticmethod
     def _hold(options: Dict[str, OPTION_TYPE]) -> float:
         """How long an answer stays visible: until the next detection is due."""
-        return max(options["detection_interval"], RETRY_DELAY_SECONDS)
+        return max(options["api_call_interval"], RETRY_DELAY_SECONDS)
 
     @staticmethod
     def _wait_after_failure(state: StreamState, options: Dict[str, OPTION_TYPE]) -> None:
         """A failed call counts like a made one, but the retry comes sooner than a long detection interval would."""
-        interval = options["detection_interval"]
+        interval = options["api_call_interval"]
         state.set_last_detection_timestamp(time.time() - interval + max(interval, RETRY_DELAY_SECONDS))
 
     @staticmethod
     def _take_quota(options: Dict[str, OPTION_TYPE]) -> bool:
-        """One call of the quota ("current_count"); False when it is used up."""
+        """One call of the quota ("max_api_calls"); False when it is used up."""
         with _quota_lock:
-            if options["current_count"] <= 0:
+            if options["max_api_calls"] <= 0:
                 return False
-            options["current_count"] -= 1
+            options["max_api_calls"] -= 1
             return True
 
     def process_frame(self, frame: np.ndarray,
                       detection_node: DETECTION_NODE_TYPE,
                       options: Dict[str, OPTION_TYPE],
                       state: StreamState) -> DETECTION_NODE_TYPE:
-        # The answers go into the extra data of the people they were asked about; the capsule has no detections of its own
+        # Only the detections of the chosen classes are asked about and annotated
+        detection_node = selected_detections(detection_node, options)
+        # The answers go into the extra data of the detections they were asked about; the capsule has no detections of its own
         state.annotate(detection_node, self._hold(options))
-        if (time.time() - state.get_last_detection_timestamp()) < options["detection_interval"]:
+        if (time.time() - state.get_last_detection_timestamp()) < options["api_call_interval"]:
             return []
         # No new requests while the last ones have no answer yet: a slow API must not pile up calls
-        if state.get_pending() > 0 or not detection_node or options["current_count"] <= 0:
+        if state.get_pending() > 0 or not detection_node or options["max_api_calls"] <= 0:
             return []
         try:
             provider_of(options)
@@ -256,10 +277,10 @@ class Backend(BaseBackend):
         try:
             detail = str(options["image_detail"]).strip() or "low"
             max_edge = MAX_CROP_EDGE.get(detail, 1024)
-            boxes = person_boxes(detection_node, options["min_person_pixels"], frame.shape)
-            for x1, y1, x2, y2 in boxes[:options["max_detections_per_frame"]]:
+            boxes = person_boxes(detection_node, options["min_detection_pixels"], frame.shape)
+            for x1, y1, x2, y2 in boxes[:options["max_detections"]]:
                 if not self._take_quota(options):
-                    logging.warning("classifier_model_router: the call quota (current_count) is used up")
+                    logging.warning("classifier_model_router: the call quota (max_api_calls) is used up")
                     break
                 crop = frame[y1:y2, x1:x2]
                 if max(crop.shape[:2]) > max_edge:
