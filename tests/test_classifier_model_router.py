@@ -63,7 +63,9 @@ def run(reply, people=None, state=None, **option_changes):
 
 def test_only_the_keys_and_the_proxy_are_empty_by_default_and_each_provider_has_its_cheapest_current_model():
     defaults = {name: option.default for name, option in Capsule.options.items()}
-    assert [name for name, value in defaults.items() if value in ("", None)] == ["claude_api_key", "chatgpt_api_key", "http_proxy"]
+    empty = [name for name, value in defaults.items() if value in ("", None)]
+    assert empty == ["custom_model", "base_url", "claude_api_key", "chatgpt_api_key", "gemini_api_key", "qwen_api_key",
+                     "glm_api_key", "deepseek_api_key", "custom_api_key", "http_proxy"]  # only what is yours, or what has no default
     assert defaults["provider"] == "claude" and defaults["claude_model"] == "claude-haiku-5-5" and defaults["chatgpt_model"] == "gpt-5-nano"
     assert model_of(options()) == "claude-haiku-5-5"
     assert model_of(options(provider="chatgpt")) == "gpt-5-nano"
@@ -71,8 +73,8 @@ def test_only_the_keys_and_the_proxy_are_empty_by_default_and_each_provider_has_
     assert model_of(options(claude_model="claude-sonnet-5-5")) == "claude-sonnet-5-5"
     assert model_of(options(claude_model=" ")) == "claude-haiku-5-5"  # emptied by hand: the cheapest model again
     assert provider_of(options(provider=" OpenAI ")) == "chatgpt" and provider_of(options(provider="Anthropic")) == "claude"
-    with pytest.raises(ValueError, match="unknown provider 'gemini'"):
-        provider_of(options(provider="gemini"))
+    with pytest.raises(ValueError, match="unknown provider 'llama'"):
+        provider_of(options(provider="llama"))
 
 
 def test_the_claude_request():
@@ -117,7 +119,7 @@ def test_the_selected_provider_is_called_and_the_answer_is_on_the_box_of_the_per
 
 
 def test_an_unknown_provider_or_a_missing_key_of_the_selected_provider_makes_no_call():
-    for changes in ({"provider": "gemini"}, {"claude_api_key": ""}, {"provider": "chatgpt", "chatgpt_api_key": ""}):
+    for changes in ({"provider": "llama"}, {"claude_api_key": ""}, {"provider": "chatgpt", "chatgpt_api_key": ""}):
         result, calls, state = run(Reply(body=chatgpt_answer("True")), **changes)
         assert result == [] and calls == [] and state.get_last_detection_timestamp() > 0
 
@@ -175,3 +177,51 @@ def test_an_answer_stays_on_its_person_who_may_move_until_it_is_old():
     assert state.annotate(far, 60) == 0 and far[0].extra_data == {}
     state.answers[0]["at"] -= 10000
     assert state.annotate(moved, 60) == 0  # too old
+
+
+def test_the_default_model_of_every_provider_is_filled_in_except_custom():
+    for provider in ("claude", "chatgpt", "gemini", "qwen", "glm", "deepseek"):
+        assert model_of(options(provider=provider)), provider
+    assert model_of(options(provider="custom")) == ""
+    assert provider_of(options(provider="Google")) == "gemini" and provider_of(options(provider="zhipu")) == "glm"
+
+
+def test_gemini_request_and_reply():
+    url, headers, body = build_request("AAAA", options(provider="gemini", gemini_api_key="g-key"))
+    assert url == "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent"
+    assert headers["x-goog-api-key"] == "g-key"
+    parts = body["contents"][0]["parts"]
+    assert parts[0]["inline_data"] == {"mime_type": "image/jpeg", "data": "AAAA"} and parts[1]["text"].startswith("How many")
+    assert body["generationConfig"] == {"maxOutputTokens": 1024, "thinkingConfig": {"thinkingLevel": "low"}}
+    older = build_request("AAAA", options(provider="gemini", gemini_model="gemini-2.5-flash-lite"))[2]
+    assert "thinkingConfig" not in older["generationConfig"]
+    reply = {"candidates": [{"content": {"parts": [{"text": "hidden", "thought": True}, {"text": " Yes "}]}}]}
+    assert reply_text("gemini", reply) == "Yes" and reply_text("gemini", {"candidates": []}) == ""
+
+
+@pytest.mark.parametrize("provider,url,extra", [
+    ("qwen", "https://dashscope-intl.aliyuncs.com/compatible-mode/v1/chat/completions", {"enable_thinking": False}),
+    ("glm", "https://api.z.ai/api/paas/v4/chat/completions", {"thinking": {"type": "disabled"}}),
+    ("deepseek", "https://api.deepseek.com/chat/completions", {}),
+])
+def test_the_openai_compatible_providers_get_plain_parameters(provider, url, extra):
+    got_url, headers, body = build_request("AAAA", options(provider=provider, **{f"{provider}_api_key": "k"}))
+    assert got_url == url and headers["Authorization"] == "Bearer k"
+    assert body["max_tokens"] == 1024 and not {"max_completion_tokens", "reasoning_effort"} & set(body)
+    assert all(body[key] == value for key, value in extra.items())
+    assert body["messages"][0]["content"][1]["image_url"] == {"url": "data:image/jpeg;base64,AAAA"}  # no detail field
+    assert body["model"] == model_of(options(provider=provider))
+
+
+def test_the_base_url_replaces_the_endpoint_and_the_custom_provider_needs_it():
+    mainland = "https://open.bigmodel.cn/api/paas/v4/chat/completions"
+    assert build_request("AAAA", options(provider="glm", base_url=mainland))[0] == mainland
+    assert build_request("AAAA", options(provider="claude", base_url="http://x"))[0] == "https://api.anthropic.com/v1/messages"
+    url, headers, body = build_request("AAAA", options(provider="custom", base_url="http://localhost:11434/v1/chat/completions",
+                                                       custom_model="qwen2.5vl", custom_api_key=""))
+    assert url.startswith("http://localhost") and "Authorization" not in headers and body["model"] == "qwen2.5vl"
+    for changes in ({}, {"base_url": "http://x"}, {"custom_model": "m"}):  # one of the two is missing
+        _, calls, _ = run(Reply(body=chatgpt_answer("1")), provider="custom", **changes)
+        assert calls == []
+    _, calls, _ = run(Reply(body=chatgpt_answer("1")), provider="custom", base_url="http://x", custom_model="m")
+    assert len(calls) == 1

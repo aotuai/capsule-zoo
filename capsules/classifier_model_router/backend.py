@@ -12,10 +12,25 @@ import logging
 from .stream_state import StreamState
 
 CLAUDE_URL = "https://api.anthropic.com/v1/messages"
-OPENAI_URL = "https://api.openai.com/v1/chat/completions"
-# the cheapest current model of each provider, used when the model option is empty
-DEFAULT_MODELS = {"claude": "claude-haiku-5-5", "chatgpt": "gpt-5-nano"}
-PROVIDER_ALIASES = {"claude": "claude", "anthropic": "claude", "chatgpt": "chatgpt", "openai": "chatgpt"}
+GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
+
+# The OpenAI-compatible chat endpoints (the "base_url" option replaces the default, for example for the China
+# mainland endpoint of a provider, a proxy gateway or a local server such as vLLM or Ollama)
+OPENAI_COMPATIBLE_URLS = {
+    "chatgpt": "https://api.openai.com/v1/chat/completions",
+    "qwen": "https://dashscope-intl.aliyuncs.com/compatible-mode/v1/chat/completions",  # mainland China: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+    "glm": "https://api.z.ai/api/paas/v4/chat/completions",  # mainland China: https://open.bigmodel.cn/api/paas/v4/chat/completions
+    "deepseek": "https://api.deepseek.com/chat/completions",
+    "custom": "",  # there is no default: the base_url option must be filled in
+}
+# the default model of each provider, used when the model option is empty (the cheapest, or a free one for testing;
+# "custom" has none). The qwen, glm, gemini and deepseek ones are templates that have not been tried with a live key
+DEFAULT_MODELS = {"claude": "claude-haiku-5-5", "chatgpt": "gpt-5-nano", "gemini": "gemini-3.1-flash-lite",
+                  "qwen": "qwen3-vl-flash", "glm": "glm-4.6v-flash", "deepseek": "deepseek-v4-flash-vision-exp", "custom": ""}
+PROVIDER_ALIASES = {"claude": "claude", "anthropic": "claude", "chatgpt": "chatgpt", "openai": "chatgpt",
+                    "gemini": "gemini", "google": "gemini", "qwen": "qwen", "alibaba": "qwen", "glm": "glm", "zhipu": "glm",
+                    "deepseek": "deepseek", "custom": "custom"}
+PROVIDER_NAMES = "claude, chatgpt, gemini, qwen, glm, deepseek or custom"
 REQUEST_TIMEOUT_SECONDS = 60  # a worker thread (and the shutdown of the capsule) must never wait for the API forever
 RETRY_DELAY_SECONDS = 10  # after a failed call, wait at least this long before the next one
 EXTRA_DATA_KEY = "model_router"  # the answer is in the extra data of the person under this key
@@ -28,21 +43,31 @@ _quota_lock = threading.Lock()
 
 
 def provider_of(options: Dict[str, OPTION_TYPE]) -> str:
-    """'claude' or 'chatgpt' (also written anthropic or openai); raises ValueError for anything else."""
+    """The provider (also written anthropic, openai, google, alibaba or zhipu); raises ValueError for anything else."""
     name = str(options["provider"]).strip().lower()
     if name not in PROVIDER_ALIASES:
-        raise ValueError(f"unknown provider '{options['provider']}': use claude or chatgpt")
+        raise ValueError(f"unknown provider '{options['provider']}': use {PROVIDER_NAMES}")
     return PROVIDER_ALIASES[name]
 
 
 def model_of(options: Dict[str, OPTION_TYPE]) -> str:
-    """The model option of the selected provider; the cheapest current model of the provider when it was left empty."""
+    """The model option of the selected provider; the default model of the provider when it was left empty."""
     provider = provider_of(options)
     return str(options[f"{provider}_model"]).strip() or DEFAULT_MODELS[provider]
 
 
 def api_key_of(options: Dict[str, OPTION_TYPE]) -> str:
     return str(options[f"{provider_of(options)}_api_key"]).strip()
+
+
+def url_of(options: Dict[str, OPTION_TYPE]) -> str:
+    """The endpoint of the selected provider; for the OpenAI-compatible ones the base_url option replaces the default."""
+    provider = provider_of(options)
+    if provider == "claude":
+        return CLAUDE_URL
+    if provider == "gemini":
+        return GEMINI_URL.format(model=model_of(options))
+    return str(options["base_url"]).strip() or OPENAI_COMPATIBLE_URLS[provider]
 
 
 def is_reasoning_model(model: str) -> bool:
@@ -55,8 +80,9 @@ def build_request(jpg_as_base64: str, options: Dict[str, OPTION_TYPE]) -> Tuple[
     """(url, headers, body) of the request for the selected provider."""
     provider, model = provider_of(options), model_of(options)
     effort = str(options["effort"]).strip()
+    key = api_key_of(options)
     if provider == "claude":
-        headers = {"Content-Type": "application/json", "x-api-key": api_key_of(options), "anthropic-version": "2023-06-01"}
+        headers = {"Content-Type": "application/json", "x-api-key": key, "anthropic-version": "2023-06-01"}
         body = {
             "model": model,
             "messages": [{"role": "user", "content": [
@@ -67,31 +93,59 @@ def build_request(jpg_as_base64: str, options: Dict[str, OPTION_TYPE]) -> Tuple[
         }
         if effort:
             body["output_config"] = {"effort": effort}
-        return CLAUDE_URL, headers, body
+        return url_of(options), headers, body
 
-    detail = str(options["image_detail"]).strip() or "low"
-    headers = {"Content-Type": "application/json", "Authorization": f"Bearer {api_key_of(options)}"}
+    if provider == "gemini":
+        headers = {"Content-Type": "application/json", "x-goog-api-key": key}
+        config = {"maxOutputTokens": options["max_tokens"]}
+        if effort and model.startswith("gemini-3"):  # the Gemini 3 models take a thinking level (minimal, low, medium, high)
+            config["thinkingConfig"] = {"thinkingLevel": effort}
+        body = {
+            "contents": [{"role": "user", "parts": [
+                {"inline_data": {"mime_type": "image/jpeg", "data": jpg_as_base64}},
+                {"text": options["prompt"]},
+            ]}],
+            "generationConfig": config,
+        }
+        return url_of(options), headers, body
+
+    # chatgpt and the providers with an OpenAI-compatible endpoint
+    headers = {"Content-Type": "application/json"}
+    if key:
+        headers["Authorization"] = f"Bearer {key}"
+    image = {"url": f"data:image/jpeg;base64,{jpg_as_base64}"}
+    if provider == "chatgpt":
+        image["detail"] = str(options["image_detail"]).strip() or "low"
     body = {
         "model": model,
         "messages": [{"role": "user", "content": [
             {"type": "text", "text": options["prompt"]},
-            {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{jpg_as_base64}", "detail": detail}},
+            {"type": "image_url", "image_url": image},
         ]}],
     }
-    if is_reasoning_model(model):
+    if provider == "chatgpt" and is_reasoning_model(model):
         body["max_completion_tokens"] = options["max_tokens"]  # also covers the thinking
         if effort:
             body["reasoning_effort"] = effort
     else:
         body["max_tokens"] = options["max_tokens"]
-    return OPENAI_URL, headers, body
+        if provider == "qwen":
+            body["enable_thinking"] = False  # Qwen thinks by default, which multiplies the cost of a one-word answer
+        elif provider == "glm":
+            body["thinking"] = {"type": "disabled"}
+    return url_of(options), headers, body
 
 
 def reply_text(provider: str, body: dict) -> str:
     """The text of a reply: Anthropic's text content blocks (a reply can also start with thinking blocks, so they are
-    read by type), or OpenAI's first choice."""
+    read by type), Gemini's text parts of the first candidate (thought parts are left out), or the first choice of an
+    OpenAI-compatible reply."""
     if provider == "claude":
         return "".join(b.get("text", "") for b in body.get("content", []) if b.get("type") == "text").strip()
+    if provider == "gemini":
+        candidates = body.get("candidates") or []
+        parts = ((candidates[0].get("content") or {}).get("parts") or []) if candidates else []
+        return "".join(p.get("text", "") for p in parts if not p.get("thought")).strip()
     choices = body.get("choices") or []
     if not choices:
         return ""
@@ -190,7 +244,11 @@ class Backend(BaseBackend):
             logging.warning(f"classifier_model_router: {e}")
             self._wait_after_failure(state, options)
             return []
-        if not api_key_of(options):
+        if provider_of(options) == "custom" and not (str(options["base_url"]).strip() and model_of(options)):
+            logging.warning("classifier_model_router: the custom provider needs the base_url and custom_model options")
+            self._wait_after_failure(state, options)
+            return []
+        if not api_key_of(options) and provider_of(options) != "custom":  # a local server needs no key
             logging.warning(f"classifier_model_router: fill in the {provider_of(options)}_api_key option to use this capsule")
             self._wait_after_failure(state, options)
             return []

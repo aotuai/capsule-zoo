@@ -5,10 +5,12 @@ from .stream_state import StreamState
 
 class Capsule(BaseCapsule):
     name = "classifier_model_router"
-    description = "v0.5. The capsule takes the people detected by other capsules, cuts each one out of the frame and sends " \
-                  "it with a prompt to a cloud AI model for classification, and adds the answer to the extra data " \
-                  "(model_router) of that person, for BrainFrame API or for other capsules to consume and generate fused results. The provider option selects the model: " \
-                  "Claude (Anthropic API) or ChatGPT (OpenAI API)."
+    description = "v0.7. Routes to Claude, ChatGPT, Gemini, Qwen, GLM, DeepSeek, or any OpenAI-compatible model (also a local one). " \
+                  "The capsule takes the people detected by other capsules, cuts each person out of the frame and asks the model " \
+                  "selected by the provider option (claude is the default) about the picture with a prompt (for example: is the person " \
+                  "wearing a hard hat?). The answer is added to the extra data of that person under the key model_router, for the " \
+                  "BrainFrame API and for other capsules to use. Fill in the API key of the selected provider. To control the cost, at most " \
+                  "max_detections_per_frame people are sent every detection_interval seconds, and current_count limits the number of calls."
     version = 1
     stream_state = StreamState
     device_mapper = DeviceMapper.map_to_single_cpu()
@@ -25,7 +27,8 @@ class Capsule(BaseCapsule):
     options = {
         "provider": TextOption(
             default = "claude",
-            description ="Which model to ask: 'claude' (Anthropic API) or 'chatgpt' (OpenAI API). The model and the api_key of that provider are used.",
+            description ="Which model to ask: claude (Anthropic API), chatgpt (OpenAI API), gemini (Google API), qwen (Alibaba), glm (Zhipu / Z.ai), "
+                         "deepseek, or custom (any OpenAI-compatible server: fill in base_url and custom_model). The model and the api_key of that provider are used.",
         ),
         "claude_model": TextOption(
             default = "claude-haiku-5-5",
@@ -35,6 +38,32 @@ class Capsule(BaseCapsule):
         "chatgpt_model": TextOption(
             default = "gpt-5-nano",
             description ="The model used when the provider is chatgpt. The default is the cheapest current OpenAI model (about US$0.05 per million input tokens).",
+        ),
+        "gemini_model": TextOption(
+            default = "gemini-3.1-flash-lite",
+            description ="The model used when the provider is gemini. The default is the cheapest current Gemini 3 model; the Google AI Studio free tier (with a daily limit) may cover it, which makes it good for testing.",
+        ),
+        "qwen_model": TextOption(
+            default = "qwen3-vl-flash",
+            description ="The model used when the provider is qwen (Alibaba Model Studio). It must be a vision model (qwen3-vl-...).",
+        ),
+        "glm_model": TextOption(
+            default = "glm-4.6v-flash",
+            description ="The model used when the provider is glm (Zhipu / Z.ai). The default is a vision model that is reported to be free, which makes it good for testing.",
+        ),
+        "deepseek_model": TextOption(
+            default = "deepseek-v4-flash-vision-exp",
+            description ="The model used when the provider is deepseek. It must be a model that accepts images; check the current name in the DeepSeek documentation.",
+        ),
+        "custom_model": TextOption(
+            default = "",
+            description ="The model used when the provider is custom (an OpenAI-compatible server): for example a model name of vLLM, Ollama, Moonshot Kimi or Doubao. There is no default.",
+        ),
+        "base_url": TextOption(
+            default = "",
+            description ="The endpoint of the chat completions API, for the providers with an OpenAI-compatible API (chatgpt, qwen, glm, deepseek, custom). "
+                         "Empty = the standard endpoint of the provider (required for custom), for example https://api.openai.com/v1/chat/completions. "
+                         "Use it for the China mainland endpoint of qwen or glm, a gateway, or a local server (http://host:11434/v1/chat/completions).",
         ),
         "prompt": TextOption(
             default = "How many people in the picture are holding a phone? Reply with an Arabic numeral only, for example: 0. Do not add anything else.",
@@ -54,6 +83,26 @@ class Capsule(BaseCapsule):
             default = "",
             description ="Your OpenAI API key (used when the provider is chatgpt). There is no default: it is your own key.",
         ),
+        "gemini_api_key": TextOption(
+            default = "",
+            description ="Your Google AI Studio API key (used when the provider is gemini). There is no default: it is your own key.",
+        ),
+        "qwen_api_key": TextOption(
+            default = "",
+            description ="Your Alibaba Model Studio (DashScope) API key (used when the provider is qwen). There is no default: it is your own key.",
+        ),
+        "glm_api_key": TextOption(
+            default = "",
+            description ="Your Z.ai / Zhipu API key (used when the provider is glm). There is no default: it is your own key.",
+        ),
+        "deepseek_api_key": TextOption(
+            default = "",
+            description ="Your DeepSeek API key (used when the provider is deepseek). There is no default: it is your own key.",
+        ),
+        "custom_api_key": TextOption(
+            default = "",
+            description ="The API key of the custom server (used when the provider is custom). Leave it empty if the server needs none (for example a local one).",
+        ),
         "http_proxy": TextOption(
             default = "",
             description ="If an http_proxy is required to access the service",
@@ -61,7 +110,8 @@ class Capsule(BaseCapsule):
         "effort": TextOption(
             default = "low",
             description ="How much the model thinks before it answers. claude: low, medium, high, xhigh or max. chatgpt (GPT-5 and o-series models): "
-                         "minimal, low, medium or high; 'minimal' is the cheapest. 'low' is enough for a True/False question. "
+                         "minimal, low, medium or high; 'minimal' is the cheapest. gemini (Gemini 3 models): minimal, low, medium or high. The other providers ignore it "
+                         "(qwen and glm are asked not to think). 'low' is enough for a True/False question. "
                          "Leave it empty for a model that has no such setting (for example Claude Haiku 4.5 or gpt-4o).",
         ),
         "image_detail": TextOption(

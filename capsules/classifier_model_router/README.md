@@ -6,16 +6,25 @@ The `classifier_model_router` capsule takes the people detected by another capsu
 
 The `provider` option selects which model is asked:
 
-| `provider` | API | Model option (default: the cheapest current model) | API key option |
+| `provider` | API | Model option (default) | API key option |
 | --- | --- | --- | --- |
-| `claude` (default) | Anthropic | `claude_model` = `claude-haiku-5-5`, about US$0.10 per million input tokens | `claude_api_key` |
-| `chatgpt` | OpenAI | `chatgpt_model` = `gpt-5-nano`, about US$0.05 per million input tokens | `chatgpt_api_key` |
+| `claude` (default) | Anthropic | `claude_model` = `claude-haiku-5-5`, the cheapest current Claude model | `claude_api_key` |
+| `chatgpt` | OpenAI | `chatgpt_model` = `gpt-5-nano`, the cheapest current OpenAI model | `chatgpt_api_key` |
+| `gemini` | Google (`generateContent`) | `gemini_model` = `gemini-3.1-flash-lite`; the Google AI Studio free tier (with daily limits) may cover it | `gemini_api_key` |
+| `qwen` | Alibaba Model Studio (OpenAI-compatible) | `qwen_model` = `qwen3-vl-flash` | `qwen_api_key` |
+| `glm` | Zhipu / Z.ai (OpenAI-compatible) | `glm_model` = `glm-4.6v-flash`, reported to be free: good for testing | `glm_api_key` |
+| `deepseek` | DeepSeek (OpenAI-compatible) | `deepseek_model` = `deepseek-v4-flash-vision-exp` (check the current vision model name) | `deepseek_api_key` |
+| `custom` | any OpenAI-compatible server | `custom_model` (no default) and `base_url` (required) | `custom_api_key` (may stay empty, for example for a local server) |
 
-It is the same capsule for both, and each provider has its own model and key option, so you can switch the `provider` option without typing anything again or loading another capsule. The capsule asks one provider at a time; it does not choose between them by itself. If you only use one provider, `claude_classifier_agent` and `chatgpt_classifier_agent` do the same for one provider each.
+**Status:** `claude` and `chatgpt` were tried with live keys. `gemini`, `qwen`, `glm`, `deepseek` and `custom` are templates built from the providers' documentation: the request and reply formats are unit-tested, but they have not been tried with a live key yet. Prices and model names change often; check the provider's page.
+Use `custom` for Moonshot Kimi, Doubao, Perplexity, or a local server (vLLM, Ollama): fill in `base_url` (the chat completions endpoint), `custom_model` and, if needed, `custom_api_key`. The `base_url` option also replaces the endpoint of `chatgpt`, `qwen`, `glm` and `deepseek`, for example for the China mainland endpoint (`https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions` for qwen, `https://open.bigmodel.cn/api/paas/v4/chat/completions` for glm).
+The pictures of the people are sent to the servers of the selected provider: check that it fits your privacy rules.
+
+It is the same capsule for all of them, and each provider has its own model and key option, so you can switch the `provider` option without typing anything again or loading another capsule. The capsule asks one provider at a time; it does not choose between them by itself. If you only use one provider, `claude_classifier_agent` and `chatgpt_classifier_agent` do the same for one provider each.
 
 ## Deployment steps
 
-In the options, choose the provider, fill in the API key of that provider (`claude_api_key` or `chatgpt_api_key`; they are empty because they are your own keys), and, if you need one, the proxy server used for the request (only HTTP proxies are supported at the moment, not SOCKS5), and the prompt used to analyze the picture.
+In the options, choose the provider, fill in the API key of that provider (`claude_api_key`, `chatgpt_api_key`, `gemini_api_key`...; they are empty because they are your own keys), and, if you need one, the proxy server used for the request (only HTTP proxies are supported at the moment, not SOCKS5), and the prompt used to analyze the picture.
 
     ```text
     PROVIDER: "claude"
@@ -40,11 +49,12 @@ The answer is also in the `extra_data_json` of the person in the detection table
 
 ## Options
 
-- `provider`: `claude` (default) or `chatgpt` (`anthropic` and `openai` are accepted as well). With any other value the capsule makes no call and logs why.
-- `claude_model` and `chatgpt_model`: the model of each provider, filled in with the cheapest current model (`claude-haiku-5-5`, `gpt-5-nano`). For harder questions, use a larger model, for example `claude-sonnet-5-5` or a larger GPT model. If you empty the field, the default is used again.
-- `claude_api_key` and `chatgpt_api_key`: your own keys, so they have no default. Only the key of the selected provider is used. `http_proxy` is empty unless you need a proxy.
-- `effort`: how much the model thinks before it answers. `claude`: `low`, `medium`, `high`, `xhigh` or `max`. `chatgpt` (GPT-5 and o-series models): `minimal` (cheapest), `low`, `medium` or `high`. The default `low` is enough for a True/False answer. Leave it empty for a model that has no such setting (for example Claude Haiku 4.5 or gpt-4o).
+- `provider`: `claude` (default), `chatgpt`, `gemini`, `qwen`, `glm`, `deepseek` or `custom` (`anthropic`, `openai`, `google`, `alibaba` and `zhipu` are accepted as well). With any other value the capsule makes no call and logs why.
+- `<provider>_model`: the model of each provider, filled in with a default (see the table; `custom_model` has none). For harder questions, use a larger model, for example `claude-sonnet-5-5` or a larger GPT model. If you empty the field, the default is used again.
+- `<provider>_api_key`: your own keys, so they have no default. Only the key of the selected provider is used. `http_proxy` is empty unless you need a proxy.
+- `effort`: how much the model thinks before it answers. `claude`: `low`, `medium`, `high`, `xhigh` or `max`. `chatgpt` (GPT-5 and o-series models) and `gemini` (Gemini 3 models): `minimal` (cheapest), `low`, `medium` or `high`. The other providers ignore it (`qwen` and `glm` are asked not to think). The default `low` is enough for a True/False answer. Leave it empty for a model that has no such setting (for example Claude Haiku 4.5 or gpt-4o).
 - `max_tokens`: defaults to 1024. It also covers the model's thinking, so a value that is too small can leave no text in the answer.
+- `base_url`: the endpoint of the OpenAI-compatible providers; empty = the provider's standard one (required for `custom`).
 - `image_detail`: `chatgpt` only: `low` (the default: a small fixed cost, enough for a yes/no question about a person), `high` or `auto`. A crop larger than 512 pixels is shrunk before it is sent (1024 for `high` and `auto`).
 - `min_person_pixels`: people whose box has fewer pixels than this (width x height, default 900) are not sent.
 - `max_detections_per_frame`: how many people (the biggest first) are sent for one frame, default 2.
