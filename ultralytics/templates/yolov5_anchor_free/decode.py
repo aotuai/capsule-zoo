@@ -23,21 +23,24 @@ def decode(raw: np.ndarray, threshold: float, num_classes: int, input_size: Tupl
         raise ValueError(
             f"Model output has {values.shape[0]} values per box, expected {4 + num_classes} "
             f"for {num_classes} classes")
-    rows = values.T
-    class_scores = rows[:, 4:]
+    # Work on the values as the model gives them (one row per value, one column per box), without transposing them: a model with
+    # thousands of classes (YOLOE prompt-free) has an output of over 150 MB, and the best score of each box is found much faster
+    # by a maximum along the class rows than by an argmax along strided columns. The class is only looked up for the boxes
+    # above the threshold.
+    class_scores = values[4:]
     if selected is not None:
         if selected.size == 0:
-            return np.zeros((0, 4), rows.dtype), np.zeros(0, rows.dtype), np.zeros(0, np.int64)
-        class_scores = class_scores[:, selected]  # the other classes cannot take the box
-    class_ids = class_scores.argmax(axis=1)
-    scores = class_scores[np.arange(rows.shape[0]), class_ids]
+            return np.zeros((0, 4), values.dtype), np.zeros(0, values.dtype), np.zeros(0, np.int64)
+        class_scores = class_scores[selected]  # the other classes cannot take the box
+    best = class_scores.max(axis=0)
+    keep = np.nonzero(best >= threshold)[0]
+    class_ids = class_scores[:, keep].argmax(axis=0)
     if selected is not None:
         class_ids = selected[class_ids]
-    keep = scores >= threshold
-    xywh = rows[keep, :4]
+    xywh = values[:4, keep].T
     xyxy = np.empty_like(xywh)
     xyxy[:, 0] = xywh[:, 0] - xywh[:, 2] / 2
     xyxy[:, 1] = xywh[:, 1] - xywh[:, 3] / 2
     xyxy[:, 2] = xywh[:, 0] + xywh[:, 2] / 2
     xyxy[:, 3] = xywh[:, 1] + xywh[:, 3] / 2
-    return xyxy, scores[keep], class_ids[keep]
+    return xyxy, best[keep], class_ids
