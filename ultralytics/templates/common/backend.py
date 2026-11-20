@@ -9,6 +9,7 @@ from .labels import labels
 from .nms import class_aware_nms
 from .settings import model_includes_preprocessing
 from .preprocess import letterbox, to_model_input, unletterbox
+from .selection import selected_classes
 
 
 class Backend(BaseOpenVINOBackend):
@@ -31,7 +32,9 @@ class Backend(BaseOpenVINOBackend):
         # Some exports also list the raw (1, 3, H, W, 5 + classes) head tensors: use the 3-D detection output
         raw = next(np.asarray(o) for o in outputs.values() if np.ndim(o) == 3)
 
-        boxes, scores, class_ids = decode(raw, options["threshold"], len(labels), (input_h, input_w))
+        selected = selected_classes(options.get("classes"), labels)  # only models with the classes option
+        extra = {} if selected is None else {"selected": selected}
+        boxes, scores, class_ids = decode(raw, options["threshold"], len(labels), (input_h, input_w), **extra)
         if NEEDS_NMS:
             keep = class_aware_nms(boxes, scores, class_ids, options["iou_threshold"], 1000)
         else:  # the model removed the duplicate boxes itself

@@ -1,4 +1,4 @@
-from vcap import BaseCapsule, DeviceMapper, FloatOption, NodeDescription
+from vcap import BaseCapsule, DeviceMapper, FloatOption, NodeDescription, TextOption
 
 from .backend import Backend
 from .labels import labels

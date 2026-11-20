@@ -10,6 +10,7 @@ from .masks import mask_polygons, unletterbox_points
 from .nms import class_aware_nms
 from .settings import model_includes_preprocessing
 from .preprocess import letterbox, to_model_input, unletterbox
+from .selection import selected_classes
 
 MAX_OBJECTS = 100
 """The most objects that get a mask in one frame (the best ones)."""
@@ -36,7 +37,9 @@ class Backend(BaseOpenVINOBackend):
         raw = next(o for o in arrays if o.ndim == 3)  # the detections with the mask coefficients
         protos = next(o for o in arrays if o.ndim == 4)[0]  # the mask prototypes, (masks, H, W)
 
-        boxes, scores, class_ids, coefficients = decode(raw, options["threshold"], len(labels), protos.shape[0])
+        selected = selected_classes(options.get("classes"), labels)  # only models with the classes option
+        extra = {} if selected is None else {"selected": selected}
+        boxes, scores, class_ids, coefficients = decode(raw, options["threshold"], len(labels), protos.shape[0], **extra)
         if NEEDS_NMS:
             keep = class_aware_nms(boxes, scores, class_ids, options["iou_threshold"], MAX_OBJECTS)
         else:  # the model removed the duplicate boxes itself

@@ -4,7 +4,7 @@ Shape (1, 4 + classes, N), N = 8400 at 640x640. Each column is
 [center x, center y, width, height, class scores...] in input pixels. There is no
 objectness value: the score of a box is its best class score.
 """
-from typing import Tuple
+from typing import Optional, Tuple
 
 import numpy as np
 
@@ -12,8 +12,12 @@ import numpy as np
 NEEDS_NMS = True
 
 
-def decode(raw: np.ndarray, threshold: float, num_classes: int, input_size: Tuple[int, int] = (640, 640)) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
-    """:returns: (xyxy boxes, scores, class ids) of the candidates above the threshold. ``input_size`` is (height, width)."""
+def decode(raw: np.ndarray, threshold: float, num_classes: int, input_size: Tuple[int, int] = (640, 640),
+           selected: Optional[np.ndarray] = None) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """:returns: (xyxy boxes, scores, class ids) of the candidates above the threshold. ``input_size`` is (height, width).
+
+    ``selected`` (class numbers) limits the choice of the best class to these classes; ``None`` means all of them.
+    """
     values = raw.reshape(raw.shape[-2], raw.shape[-1])
     if values.shape[0] != 4 + num_classes:
         raise ValueError(
@@ -21,8 +25,14 @@ def decode(raw: np.ndarray, threshold: float, num_classes: int, input_size: Tupl
             f"for {num_classes} classes")
     rows = values.T
     class_scores = rows[:, 4:]
+    if selected is not None:
+        if selected.size == 0:
+            return np.zeros((0, 4), rows.dtype), np.zeros(0, rows.dtype), np.zeros(0, np.int64)
+        class_scores = class_scores[:, selected]  # the other classes cannot take the box
     class_ids = class_scores.argmax(axis=1)
     scores = class_scores[np.arange(rows.shape[0]), class_ids]
+    if selected is not None:
+        class_ids = selected[class_ids]
     keep = scores >= threshold
     xywh = rows[keep, :4]
     xyxy = np.empty_like(xywh)

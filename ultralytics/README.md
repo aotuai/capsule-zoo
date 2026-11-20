@@ -37,12 +37,12 @@ that way.
 
 | Models | Task | Template |
 |---|---|---|
-| YOLOv3u, YOLOv5u (and the 1280 px "6u"), YOLOv8, YOLOv9, YOLO11, YOLO12, YOLO-World, YOLOE (v8, 11), YOLOv8 variants (Open Images V7, x6, v8loader) | detect | `yolov5_anchor_free` |
+| YOLOv3u, YOLOv5u (and the 1280 px "6u"), YOLOv8, YOLOv9, YOLO11, YOLO12, YOLO-World, YOLOE (all, also YOLOE-26), YOLOv8 variants (Open Images V7, x6, v8loader) | detect | `yolov5_anchor_free` |
 | Original YOLOv5 (ONNX or OpenVINO export) | detect | `yolov5_anchor` |
-| YOLO26, YOLOv10, YOLOE-26, YOLO26 variants (Objects365, distilled) | detect | `yolo_end2end` |
+| YOLO26, YOLOv10, YOLO26 variants (Objects365, distilled) | detect | `yolo_end2end` |
 | RT-DETR | detect | `rtdetr` |
-| YOLOv8, YOLOv9, YOLO11, YOLOE (v8, 11), FastSAM | segment | `segment` |
-| YOLO26, YOLOE-26 | segment | `segment_end2end` |
+| YOLOv8, YOLOv9, YOLO11, YOLOE (all), FastSAM | segment | `segment` |
+| YOLO26 | segment | `segment_end2end` |
 | YOLOv8, YOLO11 (also the P6 model) | pose | `pose` |
 | YOLO26 | pose | `pose_end2end` |
 | YOLOv8, YOLO11 | obb | `obb` |
@@ -64,6 +64,17 @@ What each template outputs:
 | `obb` | `(1, 4 + classes + 1, N)` | rotated rectangles (four corners) and the angle in extra data |
 | `obb_end2end` | `(1, 300, 7)` | rotated rectangles |
 | `classify` | `(1, classes)` | an attribute on the detections of another capsule |
+
+## The `classes` option
+
+A capsule made from an open-vocabulary model (YOLO-World, YOLOE) has a `classes` option (`yolov5_anchor_free`,
+`yolo_end2end`, `segment` and `segment_end2end` templates): the class names to report, separated by commas; empty means all.
+`common/selection.py` turns the text into class numbers and `decode()` takes the best class among those only
+(`selected` argument). The model's **vocabulary** is what was baked in when it was packaged (a text-prompt model: the names
+typed in the marketplace's vocabulary box, which starts with the 80 COCO classes; a prompt-free YOLOE model: its own 4,585
+names). The option starts with the **default class names** typed at packaging, and can be changed to any name of the
+vocabulary. To use it in a template of your own, add the `classes` `TextOption` to `capsule.py` (see `CLASSES_OPTION` in the
+marketplace's `packager/packager/render.py`).
 
 ## Models that are not packaged yet
 
