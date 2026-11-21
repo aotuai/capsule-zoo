@@ -9,7 +9,8 @@ from .class_head import ClassHeadCutter
 from .decode import NEEDS_NMS, decode
 from .labels import labels
 from .nms import class_aware_nms
-from .settings import class_head_cut, model_includes_preprocessing
+from . import settings
+from .settings import model_includes_preprocessing
 from .preprocess import letterbox, to_model_input, unletterbox
 from .selection import selected_classes
 
@@ -20,7 +21,7 @@ class Backend(BaseOpenVINOBackend):
         # A model with thousands of classes (prompt-free) is cut down to the selected classes: see class_head.py
         self._class_head = None
         self._frame_lock = threading.Lock()
-        if class_head_cut:
+        if getattr(settings, "class_head_cut", False):  # older settings.py files do not have it
             self._class_head = ClassHeadCutter(self, len(labels))
 
     def process_frame(
