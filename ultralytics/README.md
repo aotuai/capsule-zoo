@@ -67,14 +67,18 @@ What each template outputs:
 
 ## The `classes` option
 
-A capsule made from an open-vocabulary model (YOLO-World, YOLOE) has a `classes` option (`yolov5_anchor_free`,
-`yolo_end2end`, `segment` and `segment_end2end` templates): the class names to report, separated by commas; empty means all.
+A capsule made from a detection or segmentation model has a `classes` option (`yolov5_anchor_free`, `yolo_end2end`,
+`segment` and `segment_end2end` templates): the class names to report, separated by commas; empty means all.
 `common/selection.py` turns the text into class numbers and `decode()` takes the best class among those only
-(`selected` argument). The model's **vocabulary** is what was baked in when it was packaged (a text-prompt model: the names
-typed in the marketplace's vocabulary box, which starts with the 80 COCO classes; a prompt-free YOLOE model: its own 4,585
-names). The option starts with the **default class names** typed at packaging, and can be changed to any name of the
-vocabulary. To use it in a template of your own, add the `classes` `TextOption` to `capsule.py` (see `CLASSES_OPTION` in the
-marketplace's `packager/packager/render.py`).
+(`selected` argument; the end-to-end templates drop the boxes of the other classes). The model's **vocabulary** is its list of
+class names: for YOLO-World and the text-prompt YOLOE models what was baked in when it was packaged (the names typed in the
+marketplace's vocabulary box, which starts with the 80 COCO classes), for a prompt-free YOLOE model its own 4,585 names, and for
+every other model its own class names (80 for COCO). The option starts with the **default class names** typed at packaging
+(empty for a model with its own class names when none are typed: every class), and can be changed to any name of the
+vocabulary. A prompt-free capsule also cuts the class head of the model down to the selected classes (`common/class_head.py`,
+switched on by `class_head_cut = True` in the generated `settings.py`; a `settings.py` without it works too). To use the option
+in a template of your own, add the `classes` `TextOption` to `capsule.py` (see `CLASSES_OPTION` in the marketplace's
+`packager/packager/render.py`).
 
 ## Models that are not packaged yet
 
