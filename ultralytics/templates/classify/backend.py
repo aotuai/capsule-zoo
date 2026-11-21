@@ -8,6 +8,7 @@ from .classify import best_class, fit_to_model
 from .labels import labels
 from .settings import model_includes_preprocessing
 from .preprocess import to_model_input
+from .selection import selected_classes
 
 
 class Backend(BaseOpenVINOBackend):
@@ -25,6 +26,10 @@ class Backend(BaseOpenVINOBackend):
         if frame is None or detection_node is None:
             return None
 
+        selected = selected_classes(options.get("classes"), labels)  # only models with the classes option
+        if selected is not None and selected.size == 0:
+            return None  # every name typed is unknown: no class can be chosen
+
         crop = Resize(frame).crop_bbox(detection_node.bbox).frame
         if crop.size == 0:
             return None
@@ -35,7 +40,7 @@ class Backend(BaseOpenVINOBackend):
         outputs = self.send_to_batch({input_name: to_model_input(image, model_includes_preprocessing)}).result()
         output = next(np.asarray(o) for o in outputs.values())
 
-        class_id, confidence = best_class(output, len(labels))
+        class_id, confidence = best_class(output, len(labels), selected)
         if confidence >= options["min_confidence"]:
             detection_node.attributes[self.attribute_name] = labels[class_id]
             detection_node.extra_data[self.attribute_name + "_confidence"] = confidence

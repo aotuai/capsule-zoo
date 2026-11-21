@@ -1,4 +1,4 @@
-from vcap import BaseCapsule, DeviceMapper, EnumOption, FloatOption, NodeDescription
+from vcap import BaseCapsule, DeviceMapper, EnumOption, FloatOption, NodeDescription, TextOption
 
 from .backend import Backend
 from .labels import labels
@@ -42,4 +42,4 @@ class Capsule(BaseCapsule):
                 "whole image, fill the rest. stretch: squeeze the whole image."
             ),
         ),
-    }
+__CLASSES_OPTION__    }

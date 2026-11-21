@@ -1,7 +1,8 @@
 """The ``classes`` option of a capsule made from an open-vocabulary model (YOLO-World, YOLOE).
 
 The model was packaged with a vocabulary of class names (``labels``). The option picks the names that the capsule
-reports, so they can change without packaging again. Names are matched ignoring case and spaces at the ends.
+reports, so they can change without packaging again. Names are matched ignoring case, spaces at the ends and the difference between a space and an underscore
+(the ImageNet names have underscores: ``great_white_shark``).
 """
 import logging
 from typing import Dict, List, Optional
@@ -9,6 +10,10 @@ from typing import Dict, List, Optional
 import numpy as np
 
 _cache: Dict[str, Optional[np.ndarray]] = {}
+
+
+def _key(name: str) -> str:
+    return name.strip().lower().replace("_", " ")
 
 
 def selected_classes(text: Optional[str], labels: List[str]) -> Optional[np.ndarray]:
@@ -23,10 +28,10 @@ def selected_classes(text: Optional[str], labels: List[str]) -> Optional[np.ndar
             _cache.clear()
         index: Dict[str, int] = {}
         for number, name in enumerate(labels):
-            index.setdefault(name.strip().lower(), number)
+            index.setdefault(_key(name), number)
         chosen: List[int] = []
         for name in text.split(","):
-            name = name.strip().lower()
+            name = _key(name)
             if not name:
                 continue
             if name not in index:

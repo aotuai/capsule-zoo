@@ -67,10 +67,11 @@ What each template outputs:
 
 ## The `classes` option
 
-A capsule made from a detection or segmentation model has a `classes` option (`yolov5_anchor_free`, `yolo_end2end`,
-`segment` and `segment_end2end` templates): the class names to report, separated by commas; empty means all.
+A capsule made from a detection, segmentation or classification model has a `classes` option (`yolov5_anchor_free`,
+`yolo_end2end`, `segment`, `segment_end2end` and `classify` templates): the class names to report, separated by commas; empty means all.
 `common/selection.py` turns the text into class numbers and `decode()` takes the best class among those only
-(`selected` argument; the end-to-end templates drop the boxes of the other classes). The model's **vocabulary** is its list of
+(`selected` argument; the end-to-end templates drop the boxes of the other classes; the `classify` template chooses the best of
+the selected classes, with its own probability). The model's **vocabulary** is its list of
 class names: for YOLO-World and the text-prompt YOLOE models what was baked in when it was packaged (the names typed in the
 marketplace's vocabulary box, which starts with the 80 COCO classes), for a prompt-free YOLOE model its own 4,585 names, and for
 every other model its own class names (80 for COCO). The option starts with the **default class names** typed at packaging

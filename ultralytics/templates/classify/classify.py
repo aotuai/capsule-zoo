@@ -1,5 +1,5 @@
 """Preparing a detection's image for an image classification model, and reading its answer (numpy and OpenCV only)."""
-from typing import Tuple
+from typing import Optional, Tuple
 
 import cv2
 import numpy as np
@@ -33,14 +33,21 @@ def fit_to_model(crop: np.ndarray, width: int, height: int, mode: str) -> np.nda
     return resized[top:top + height, left:left + width]
 
 
-def best_class(output: np.ndarray, num_classes: int) -> Tuple[int, float]:
+def best_class(output: np.ndarray, num_classes: int, selected: Optional[np.ndarray] = None) -> Tuple[int, float]:
     """(class number, probability) of the best class. The model normally gives probabilities; if it gives raw
-    scores, they are turned into probabilities first."""
+    scores, they are turned into probabilities first.
+
+    ``selected`` (class numbers) limits the choice to these classes: the best of them wins, with its own probability
+    (the probabilities of the classes that are not selected are not shared out again). ``None`` means every class.
+    """
     scores = np.asarray(output, dtype=np.float64).reshape(-1)
     if scores.size != num_classes:
         raise ValueError(f"Model output has {scores.size} values, expected {num_classes} (one per class name)")
     if scores.min() < 0 or scores.max() > 1 or abs(scores.sum() - 1) > 1e-2:
         scores = np.exp(scores - scores.max())
         scores = scores / scores.sum()
-    best = int(scores.argmax())
+    if selected is None:
+        best = int(scores.argmax())
+    else:
+        best = int(selected[scores[selected].argmax()])
     return best, float(scores[best])
